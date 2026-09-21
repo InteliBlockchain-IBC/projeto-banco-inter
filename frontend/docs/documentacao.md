@@ -210,11 +210,50 @@ mudanças relevantes nas propostas.
 
 ### 2.3 Personas
 
-[Preencha aqui.]
+Três proto-personas derivadas do TAP, dos entregáveis do ciclo e dos wireframes
+(sem entrevistas; nomes, cargos e bancos fictícios). Versão completa em
+[docs/ux/personas.md](ux/personas.md); pranchas visuais na página
+"jornada do usuário" do Figma.
+
+| Persona | Papel | Prioridade | O que precisa ver | Telas | Requisitos |
+| --- | --- | --- | --- | --- | --- |
+| Marina Duarte | Operadora da mesa de tesouraria (DI/overnight). Publica ofertas quando sobra caixa e aceita ofertas de terceiros quando falta. | Primária | Valor, taxa CDI, prazo, limite disponível e impacto no limite, contraparte, status, hash e confirmação | WEB 01–08, 10 | RF01, RF02, RF03, RF04, RF06, RNF02 |
+| Ricardo Sá | Gestor de tesouraria / risco de liquidez. Define limites por contraparte e supervisiona a exposição; raramente executa. | Secundária | Limite consumido vs. disponível, impacto agregado das propostas, volume 24 h, ofertas ativas, histórico filtrável | WEB 02, 09 | RF02, RF04, RF05 |
+| Camila Reis | Analista de back-office / conformidade. Concilia e audita operações; produz evidência para auditoria. | Secundária | Timestamp, partes, taxa, hash com link para o explorer da Sepolia, bloco, confirmações; busca e exportação | WEB 09, 04, 08 | RF05, RNF03 |
+
+Dores comuns às três, herdadas do TAP: checagem manual de limites, intervalo
+entre negociação e liquidação (risco de contraparte) e conciliação lenta no
+fechamento diário. O avaliador do Inter no demo day é audiência, não persona:
+a interface precisa ser legível em telão, mas é desenhada para as três acima.
 
 ### 2.4 Jornada do operador
 
-[Preencha aqui.]
+Jornada única da persona primária (Marina) com dois ramos conforme a posição
+de caixa do dia: **tomar crédito** (aceitar oferta de terceiro) ou **conceder
+crédito** (publicar e acompanhar a própria oferta). Versão completa, com o que
+precisa ver em cada etapa, estados da UI, dores do processo atual e emoção, em
+[docs/ux/jornada-operador.md](ux/jornada-operador.md).
+
+| Etapa | Tela | Objetivo | Requisito |
+| --- | --- | --- | --- |
+| 1. Entrar | WEB 01 | Login, carteira conectada e rede Sepolia confirmada | RNF01 |
+| 2. Ler a mesa | WEB 02 | Limite, CDI vigente, volume 24 h, ofertas ativas; comparar ofertas | RF04 |
+| 3. Analisar uma oferta | WEB 04 | Dados da oferta lado a lado com o limite da contraparte | RF02 |
+| 4A. Confirmar e assinar | WEB 05 | Revisar e assinar na carteira; aceite = liquidação atômica | RF03 |
+| 5A. Aguardar confirmação | WEB 06 | Hash visível, stepper, confirmação em até 30 s; nunca "Liquidada" otimista | RNF02, RNF03 |
+| 4B. Publicar oferta | WEB 03 | Valor, taxa CDI e prazo | RF01 |
+| 5B. Acompanhar minhas ofertas | WEB 07, 08, 10 | Status; cancelar somente enquanto Ofertada | RF06 |
+| 6. Conferir no histórico | WEB 09 | Timestamp, partes, taxa, hash, bloco, confirmações; exportar | RF05, RNF03 |
+
+Pontos baixos da curva emocional: a assinatura (irreversível) e a espera pela
+confirmação. São as etapas que mais exigem feedback claro, estados de erro
+explícitos e nenhum estado inconsistente.
+
+A jornada também registra oito lacunas dos wireframes atuais (tela de
+erro/rejeição, estado "rede errada", "Perfil" sem tela, aba "Em análise" sem
+definição, "Aceita" persistida vs. transitória, atualização quando outro
+operador aceita, limite insuficiente bloqueado, destino do botão "Salvar"),
+como insumo para o protótipo da semana 2.
 
 ### 2.5 User stories — opcional
 
@@ -233,7 +272,7 @@ mudanças relevantes nas propostas.
 | --- | --- | --- | --- |
 | Wireframes | [Preencher] | [Preencher] | [Preencher] |
 | Fluxo de navegação | [Preencher] | [Preencher] | [Preencher] |
-| Personas e jornada | [Preencher] | [Preencher] | [Preencher] |
+| Personas e jornada | [docs/ux/](ux/README.md) · página "jornada do usuário" do Figma | José Maia | Proposta v0.1, a validar na sprint review |
 | User stories | [Preencher] | [Preencher] | [Preencher] |
 
 ---
