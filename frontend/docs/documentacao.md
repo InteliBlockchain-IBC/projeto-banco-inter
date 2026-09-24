@@ -307,7 +307,7 @@ como insumo para o protótipo da semana 2.
 
 ### 3.3 Design system
 
-O design system fica no arquivo do Figma "Frontend-Projeto-Inter" ([Design System · Mesa de Operações](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106)), e os tokens são espelhados com os mesmos nomes em `src/styles/tokens.css`, com temas claro e escuro. A Mesa tem identidade própria, com laranja como acento: a TAP autoriza apenas o uso do logotipo do parceiro para divulgação, por isso não reproduzimos a identidade visual do Inter. As fontes são Archivo, IBM Plex Sans e IBM Plex Mono, todas sob licença OFL, compatível com o RNF04. Por ora, o design system está em uma Section da página "teste com graficos" e será movido para uma página própria "Design System".
+O design system fica no arquivo do Figma "Frontend-Projeto-Inter" ([Design System · Mesa de Operações](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106)), e os tokens são espelhados com os mesmos nomes em `src/styles/tokens.css`, com temas claro e escuro. A Mesa tem identidade própria, com laranja como acento: a TAP autoriza apenas o uso do logotipo do parceiro para divulgação, por isso não reproduzimos a identidade visual do Inter. As fontes são Archivo, IBM Plex Sans e IBM Plex Mono, todas sob licença OFL, compatível com o RNF04. Ele fica na página "Design System" do arquivo.
 
 #### Cores
 
