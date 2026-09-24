@@ -307,58 +307,149 @@ como insumo para o protótipo da semana 2.
 
 ### 3.3 Design system
 
+O design system fica no arquivo do Figma "Frontend-Projeto-Inter" ([Design System · Mesa de Operações](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106)), e os tokens são espelhados com os mesmos nomes em `src/styles/tokens.css`, com temas claro e escuro. A Mesa tem identidade própria, com laranja como acento: a TAP autoriza apenas o uso do logotipo do parceiro para divulgação, por isso não reproduzimos a identidade visual do Inter. As fontes são Archivo, IBM Plex Sans e IBM Plex Mono, todas sob licença OFL, compatível com o RNF04. Por ora, o design system está em uma Section da página "teste com graficos" e será movido para uma página própria "Design System".
+
 #### Cores
+
+Os contrastes seguem o formato claro / escuro e foram medidos pela razão WCAG 2.1 (mínimo AA: 4,5:1 para texto, 3:1 para bordas e foco).
 
 | Token | Valor | Aplicação | Contraste validado |
 | --- | --- | --- | --- |
-| [Nome do token] | [HEX/RGB] | [Uso] | [Sim/Não] |
+| `fundo/canvas` (`--cor-fundo-canvas`) | Claro #F3F5F8 · Escuro #0D1117 | Fundo geral das telas. | Base dos pares de texto |
+| `fundo/superficie` (`--cor-fundo-superficie`) | Claro #FFFFFF · Escuro #151B23 | Cards, painéis, tabela e modais. | Base dos pares de texto |
+| `fundo/rebaixado` (`--cor-fundo-rebaixado`) | Claro #EAEEF3 · Escuro #1C232D | Cabeçalho de tabela, campos e áreas agrupadas. | Base dos pares de texto |
+| `texto/principal` (`--cor-texto-principal`) | Claro #131A22 · Escuro #E6EBF1 | Valores, títulos e texto principal. | Sim — 16,0:1 / 15,8:1 sobre canvas (mín. 15,0:1 / 13,2:1) |
+| `texto/secundario` (`--cor-texto-secundario`) | Claro #4E5968 · Escuro #A3AEBB | Rótulos, cabeçalhos de coluna e texto de apoio. | Sim — 6,5:1 / 8,4:1 sobre canvas (mín. 6,1:1 / 7,0:1) |
+| `texto/sutil` (`--cor-texto-sutil`) | Claro #5A6573 · Escuro #8893A1 | Legendas, timestamps e placeholders. | Sim — 5,4:1 / 6,1:1 sobre canvas (mín. 5,1:1 / 5,1:1) |
+| `borda/padrao` (`--cor-borda-padrao`) | Claro #D3D9E1 · Escuro #2A3440 | Divisórias e contorno de cards. | Não se aplica — divisória decorativa |
+| `borda/forte` (`--cor-borda-forte`) | Claro #788391 · Escuro #6B7684 | Contorno de campos e controles. | Sim — 3,5:1 / 4,1:1 sobre canvas (mín. 3,3:1 / 3,4:1) |
+| `acento/preenchimento` (`--cor-acento-preenchimento`) | Claro #FF7A00 · Escuro #FF8A1F | Fundo do botão de ação principal. | Base de `acento/sobre` |
+| `acento/sobre` (`--cor-acento-sobre`) | Claro #131A22 · Escuro #131A22 | Texto e ícone sobre o laranja. | Sim — 6,7:1 / 7,4:1 sobre `acento/preenchimento` |
+| `acento/texto` (`--cor-acento-texto`) | Claro #B34700 · Escuro #FF9E47 | Links e texto de destaque em laranja. | Sim — 5,0:1 / 9,2:1 sobre canvas (mín. 4,7:1 / 7,7:1) |
+| `foco/anel` (`--cor-foco-anel`) | Claro #0B5FD6 · Escuro #5B9BFF | Anel de foco de teclado. | Sim — 5,3:1 / 6,8:1 sobre canvas (mín. 5,0:1 / 5,7:1) |
+| `status/ofertada/texto` (`--cor-status-ofertada-texto`) | Claro #1C4FA0 · Escuro #8DB4F5 | Rótulo e trilho do status Ofertada. | Sim — 6,7:1 / 7,4:1 sobre o fundo do badge |
+| `status/ofertada/fundo` (`--cor-status-ofertada-fundo`) | Claro #E6EEFB · Escuro #15243B | Fundo do badge Ofertada. | Base do par com o texto do status |
+| `status/aceita/texto` (`--cor-status-aceita-texto`) | Claro #5B3CC4 · Escuro #B9A6FA | Rótulo e trilho do status Aceita. | Sim — 6,2:1 / 7,6:1 sobre o fundo do badge |
+| `status/aceita/fundo` (`--cor-status-aceita-fundo`) | Claro #EFEAFD · Escuro #231C3D | Fundo do badge Aceita. | Base do par com o texto do status |
+| `status/processamento/texto` (`--cor-status-processamento-texto`) | Claro #0B6577 · Escuro #6FD0DF | Rótulo e trilho do status Em processamento. | Sim — 5,9:1 / 8,4:1 sobre o fundo do badge |
+| `status/processamento/fundo` (`--cor-status-processamento-fundo`) | Claro #E0F4F7 · Escuro #0F2A30 | Fundo do badge Em processamento. | Base do par com o texto do status |
+| `status/liquidada/texto` (`--cor-status-liquidada-texto`) | Claro #106B40 · Escuro #6FD39E | Rótulo e trilho do status Liquidada. | Sim — 5,8:1 / 8,5:1 sobre o fundo do badge |
+| `status/liquidada/fundo` (`--cor-status-liquidada-fundo`) | Claro #E3F4EA · Escuro #11291D | Fundo do badge Liquidada. | Base do par com o texto do status |
+| `status/cancelada/texto` (`--cor-status-cancelada-texto`) | Claro #505A66 · Escuro #A3AEBB | Rótulo e trilho do status Cancelada. | Sim — 6,1:1 / 6,9:1 sobre o fundo do badge |
+| `status/cancelada/fundo` (`--cor-status-cancelada-fundo`) | Claro #EDF0F3 · Escuro #1E252E | Fundo do badge Cancelada. | Base do par com o texto do status |
+| `status/falha/texto` (`--cor-status-falha-texto`) | Claro #B0271D · Escuro #F59A91 | Rótulo e trilho do status Falha e mensagens de erro. | Sim — 5,7:1 / 7,7:1 sobre o fundo do badge |
+| `status/falha/fundo` (`--cor-status-falha-fundo`) | Claro #FCE8E6 · Escuro #35171A | Fundo do badge Falha e de alertas de erro. | Base do par com o texto do status |
+| `aviso/texto` (`--cor-aviso-texto`) | Claro #8A5300 · Escuro #F2C063 | Avisos como limite insuficiente e rede errada. | Sim — 5,8:1 / 8,9:1 sobre `aviso/fundo` |
+| `aviso/fundo` (`--cor-aviso-fundo`) | Claro #FFF3DC · Escuro #33240B | Fundo de faixas e alertas de aviso. | Base do par com `aviso/texto` |
+
+- Nunca usar texto branco sobre o laranja (2,6:1, reprovado); sobre `acento/preenchimento` o texto é sempre `acento/sobre`.
+- O laranja não funciona como indicador isolado de estado nem como anel de foco; o foco usa `foco/anel`.
+- Status nunca é comunicado só por cor: o badge sempre exibe o rótulo por extenso e o trilho, além da cor.
 
 #### Tipografia
 
+Números (valores, taxas, prazos e limites) usam algarismos tabulares para alinhar em colunas. O tamanho mínimo é 13 px, pensando na legibilidade em telão.
+
 | Token | Família | Peso | Tamanho/altura de linha | Aplicação |
 | --- | --- | --- | --- | --- |
-| [Nome do token] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
+| `valor/xl` (`--tipo-valor-xl`) | Archivo | SemiBold (600) | 40 px / 44 px | Valor em destaque no detalhe da operação e limite disponível. |
+| `valor/lg` (`--tipo-valor-lg`) | Archivo | SemiBold (600) | 30 px / 34 px | Valor principal do card de oferta e indicadores da Mesa. |
+| `valor/md` (`--tipo-valor-md`) | Archivo | SemiBold (600) | 20 px / 26 px | Taxa CDI, prazo e valores secundários. |
+| `titulo/pagina` (`--tipo-titulo-pagina`) | IBM Plex Sans | SemiBold (600) | 28 px / 36 px | Título de cada tela. |
+| `titulo/secao` (`--tipo-titulo-secao`) | IBM Plex Sans | SemiBold (600) | 20 px / 28 px | Títulos de seções e painéis. |
+| `corpo/lg` (`--tipo-corpo-lg`) | IBM Plex Sans | Regular (400) | 18 px / 28 px | Textos de apoio em destaque, como a descrição das telas. |
+| `corpo/md` (`--tipo-corpo-md`) | IBM Plex Sans | Regular (400) | 16 px / 24 px | Texto padrão e células da tabela. |
+| `rotulo` (`--tipo-rotulo`) | IBM Plex Sans | Medium (500) | 14 px / 20 px | Rótulos dos dados do card e de campos. |
+| `rotulo/forte` (`--tipo-rotulo-forte`) | IBM Plex Sans | SemiBold (600) | 14 px / 20 px | Badge de status, botões e cabeçalhos de coluna. |
+| `legenda` (`--tipo-legenda`) | IBM Plex Sans | Regular (400) | 13 px / 18 px | Textos auxiliares e timestamps. |
+| `mono/md` (`--tipo-mono-md`) | IBM Plex Mono | Medium (500) | 14 px / 20 px | Hash on-chain e ID na tabela e no detalhe. |
+| `mono/sm` (`--tipo-mono-sm`) | IBM Plex Mono | Regular (400) | 13 px / 18 px | ID no card, bloco e confirmações. |
 
 #### Espaçamentos e dimensões
 
+A escala de espaçamento tem base de 4 px.
+
 | Token | Valor | Aplicação |
 | --- | --- | --- |
-| [Nome do token] | [Preencher] | [Preencher] |
+| `espaco/1` (`--espaco-1`) | 4 px | Ajuste fino entre ícone e texto. |
+| `espaco/2` (`--espaco-2`) | 8 px | Espaço interno do badge e entre elementos próximos. |
+| `espaco/3` (`--espaco-3`) | 12 px | Espaçamento vertical de células e controles compactos. |
+| `espaco/4` (`--espaco-4`) | 16 px | Espaço interno de campos e botões; margem lateral em telas estreitas. |
+| `espaco/5` (`--espaco-5`) | 20 px | Espaço interno de cards. |
+| `espaco/6` (`--espaco-6`) | 24 px | Espaço entre cards e grupos de conteúdo. |
+| `espaco/8` (`--espaco-8`) | 32 px | Espaço entre seções da tela. |
+| `espaco/10` (`--espaco-10`) | 40 px | Separação entre blocos maiores. |
+| `espaco/12` (`--espaco-12`) | 48 px | Margem de página em telas largas. |
+| `espaco/16` (`--espaco-16`) | 64 px | Margem de página em telão. |
+| `raio/sm` (`--raio-sm`) | 6 px | Elementos pequenos, como tooltips e marcadores. |
+| `raio/md` (`--raio-md`) | 8 px | Botões e campos. |
+| `raio/lg` (`--raio-lg`) | 14 px | Cards, painéis e modais. |
+| `raio/pill` (`--raio-pill`) | 999 px | Badge de status. |
 
 #### Componentes
 
 ##### Card de oferta
 
-[Insira imagem, link ou especificação do componente.]
+**Figma:** [Card de oferta](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=355-310)
+
+O card tem, de cima para baixo: cabeçalho (seleção, contraparte, ID em mono e badge de status), valor completo (`valor/lg`), taxa e prazo (`valor/md`), barra de impacto no limite e ações. A largura é de 344 px, para caber no grid de 3 colunas da Mesa.
 
 | Propriedade/variante | Descrição |
 | --- | --- |
-| [Preencher] | [Preencher] |
+| Perspectiva=Terceiro | Oferta de outra instituição; ações "Ver detalhes" e "Aceitar oferta". |
+| Perspectiva=Minha oferta | Oferta do próprio operador; ações "Ver detalhes" e "Cancelar oferta", esta só enquanto a oferta está Ofertada (RF06). |
+| Estado=Padrão | Oferta disponível. |
+| Estado=Selecionado | Checkbox marcado e borda de acento; seleção para comparar ofertas. |
+| Estado=Limite insuficiente | Barra em vermelho com o percentual real (ex.: 120%), "Aceitar oferta" bloqueado e aviso "Limite insuficiente: faltam R$ X" (RF02; a validação final é do contrato). |
+| Estado=Indisponível | Oferta aceita ou cancelada por outro operador com a tela aberta ou, em Minha oferta, já aceita: aviso explicativo e ações bloqueadas. |
+| Estado=Carregando | Esqueleto com a mesma estrutura do card. |
+
+Valores sempre completos e formatados em pt-BR, sem abreviar nem arredondar.
 
 ##### Badge de status
 
-[Insira imagem, link ou especificação do componente.]
+**Figma:** [Badge de status](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=352-76)
+
+O badge tem dois tamanhos: Padrão (altura 28 px, `rotulo/forte`), para cards e tabelas, e Grande (altura 36 px, `titulo/secao`), para o Detalhe da operação e o telão.
 
 | Status | Aparência | Uso |
 | --- | --- | --- |
-| Ofertada | [Definir cor, ícone e rótulo] | Oferta disponível e ainda não aceita. |
-| Aceita | [Definir cor, ícone e rótulo] | Oferta aceita antes da confirmação da liquidação. |
-| Em processamento | [Definir cor, ícone e rótulo] | Transação enviada e aguardando confirmação na Sepolia. |
-| Liquidada | [Definir cor, ícone e rótulo] | Operação concluída com hash disponível. |
-| Cancelada | [Definir cor, ícone e rótulo] | Oferta retirada antes do aceite. |
-| Falha | [Definir cor, ícone e rótulo] | Operação não concluída ou rejeitada. |
+| Ofertada | Azul (`status/ofertada/*`) · trilho ●○○ · rótulo "Ofertada" | Oferta disponível e ainda não aceita. |
+| Aceita | Violeta (`status/aceita/*`) · trilho ●●○ · rótulo "Aceita" | Oferta aceita antes da confirmação da liquidação. |
+| Em processamento | Petróleo (`status/processamento/*`) · trilho ●●◐ · rótulo "Em processamento"; em código, a marca pulsa e fica parada com `prefers-reduced-motion` | Transação enviada e aguardando confirmação na Sepolia. |
+| Liquidada | Verde (`status/liquidada/*`) · trilho ●●● · rótulo "Liquidada" | Operação concluída com hash disponível. |
+| Cancelada | Cinza (`status/cancelada/*`) · trilho ●× · rótulo "Cancelada" | Oferta retirada antes do aceite. |
+| Falha | Vermelho (`status/falha/*`) · trilho ●●× · rótulo "Falha" | Operação não concluída ou rejeitada. |
+
+- O trilho indica a posição no ciclo Ofertada → Aceita → Liquidada, então o status não depende só da cor (WCAG 1.4.1).
+- "Liquidada" só aparece após a confirmação on-chain, nunca de forma otimista.
 
 ##### Tabela
 
-[Insira imagem, link ou especificação do componente.]
+**Figma:** [Tabela](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-143)
 
 | Propriedade/estado | Descrição |
 | --- | --- |
+| Componentes | Célula de cabeçalho (Alinhamento: Esquerda/Direita), Célula (Tipo: Texto, Número, Mono, Badge, Hash, Ação) e Estado da tabela. |
+| Dimensões | Linhas de 52 px e cabeçalho de 44 px. |
+| Alinhamento | Números à direita, com algarismos tabulares. |
 | Colunas mínimas | Instituições, valor, taxa CDI, prazo, status e data/hora. |
-| Ação de linha | Abrir o detalhe da operação. |
-| Carregamento | Exibir linhas esqueleto ou indicador equivalente. |
-| Vazio | Informar que ainda não há operações. |
-| Erro | Explicar a falha e oferecer nova tentativa quando aplicável. |
+| Composição Histórico | ID · Data/hora · Contraparte · Valor · Taxa CDI · Prazo · Status · Hash · Ações (RNF03); o hash abre a transação em sepolia.etherscan.io. |
+| Composição Minhas ofertas | ID · Banco ofertante · Valor · Taxa CDI · Prazo · Status · Ações; "Cancelar oferta" só aparece em Ofertada (RF06). |
+| Ação de linha | A linha inteira abre o Detalhe da operação, com foco visível em `foco/anel`. |
+| Carregamento | Esqueleto de 5 linhas. |
+| Vazio | Mensagem "Nenhuma operação por aqui ainda" e ação "Ir para a Mesa". |
+| Nenhum resultado | Filtros sem correspondência, com a ação "Limpar filtros". |
+| Erro | Mensagem "Não foi possível carregar o histórico" e ação "Tentar novamente". |
+
+##### Componentes de apoio
+
+**Figma:** [Componentes de apoio](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-131)
+
+- **Botão:** variantes Primário, Secundário e Perigo; estados Padrão, Foco e Bloqueado; tamanhos Padrão (44 px) e Grande (52 px). Um único Primário por contexto, com texto escuro sobre o laranja.
+- **Link de hash:** hash abreviado em 6 + 4 caracteres, que abre a transação no explorer da Sepolia, com botão para copiar.
+- **Barra de impacto no limite:** variantes Normal e Excede.
+- **Checkbox de seleção:** área de toque de 44 px.
 
 ### 3.4 Evidências e links da semana
 
@@ -366,7 +457,7 @@ como insumo para o protótipo da semana 2.
 | --- | --- | --- | --- |
 | Protótipo navegável | [Preencher] | [Preencher] | [Preencher] |
 | Telas com visual final | [Preencher] | [Preencher] | [Preencher] |
-| Design system | [Preencher] | [Preencher] | [Preencher] |
+| Design system | [Figma — Design System · Mesa de Operações](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106) · tokens em `src/styles/tokens.css` | José Maia | Concluído |
 
 ---
 
