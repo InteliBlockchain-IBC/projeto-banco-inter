@@ -1,0 +1,47 @@
+/* Estilos globais e tokens de design do Banco Inter - Crédito Interfinanceiro */
+
+:root {
+  --bg-page: #F4F5F7;
+  --bg-surface: #FFFFFF;
+  --color-primary: #171717;
+  --color-inter-orange: #FF7A00;
+  --border-subtle: #E5E7EB;
+}
+
+/* Scrollbar sutil e limpa */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F5F7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Suporte a classes utilitárias de animação suave */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
