@@ -1,122 +1,47 @@
+/* Estilos globais e tokens de design do Banco Inter - Crédito Interfinanceiro */
+
 :root {
-  --bg: #12151a;
-  --surface: #1a1e25;
-  --surface-2: #20252d;
-  --border: #2c313b;
-  --border-strong: #3a4150;
-  --text: #e8eaed;
-  --text-muted: #8b9099;
-  --text-faint: #5b616b;
-
-  --accent: #ff8a3d;
-  --accent-soft: #33261a;
-
-  --ok: #4fd1a5;
-  --ok-soft: #16261f;
-  --warn: #ffb84d;
-  --warn-soft: #2c2417;
-  --danger: #ff5d5d;
-  --danger-soft: #2e1a1a;
-  --muted-status: #7a8087;
-
-  --font-sans: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
-  --radius: 6px;
+  --bg-page: #F4F5F7;
+  --bg-surface: #FFFFFF;
+  --color-primary: #171717;
+  --color-inter-orange: #FF7A00;
+  --border-subtle: #E5E7EB;
 }
 
-* { box-sizing: border-box; }
-
-html, body, #root { height: 100%; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+/* Scrollbar sutil e limpa */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.num { font-family: var(--font-mono); }
-
-h1, h2, h3 { font-weight: 600; margin: 0; }
-h1 { font-size: 18px; }
-h2 { font-size: 15px; }
-
-button {
-  font-family: inherit;
-  font-size: 13px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-strong);
-  background: transparent;
-  color: var(--text);
-  padding: 8px 14px;
-  cursor: pointer;
-}
-button.primary { background: var(--accent); border-color: var(--accent); color: #1a1206; font-weight: 600; }
-button.primary:hover { filter: brightness(1.08); }
-button.ghost { border-color: transparent; color: var(--text-muted); }
-button:disabled { opacity: .4; cursor: not-allowed; }
-
-input {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  padding: 8px 10px;
-  width: 100%;
-}
-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-
-a { color: var(--accent); text-decoration: none; }
-
-.app-shell { max-width: 880px; margin: 0 auto; padding: 20px 20px 60px; }
-
-.hairline { border-bottom: 1px solid var(--border); }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
+::-webkit-scrollbar-track {
+  background: #F4F5F7;
 }
 
-.stat {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  background: var(--surface);
-  flex: 1;
-  min-width: 140px;
-}
-.stat .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
-.stat .value { font-size: 18px; margin-top: 2px; }
-
-.empty-state {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--text-faint);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  font-size: 13px;
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 9999px;
 }
 
-.modal-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.55);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px; z-index: 50;
-}
-.modal-box {
-  background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); padding: 20px; width: 100%; max-width: 420px;
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
 }
 
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); }
-th { color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-tr.clickable { cursor: pointer; }
-tr.clickable:hover td { background: var(--surface-2); }
+/* Suporte a classes utilitárias de animação suave */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

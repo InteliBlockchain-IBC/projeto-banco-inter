@@ -1,26 +1,19 @@
-const estilos = {
-  Ofertada: { color: "var(--text-muted)", border: "var(--border-strong)" },
-  Aceita: { color: "var(--warn)", border: "var(--warn)" },
-  Liquidada: { color: "var(--ok)", border: "var(--ok)" },
-  Cancelada: { color: "var(--muted-status)", border: "var(--border)" },
-};
+import Badge from "./ui/Badge";
 
-export default function StatusBadge({ status }) {
-  const s = estilos[status] || estilos.Ofertada;
+export default function StatusBadge({ status, size = "md", className = "" }) {
+  const map = {
+    Ofertada: { variant: "neutral", label: "Ofertada", dot: true },
+    Ativa: { variant: "neutral", label: "Ativa", dot: true },
+    Aceita: { variant: "success", label: "Aceita", dot: true },
+    Liquidada: { variant: "success", label: "Liquidada", dot: true },
+    Cancelada: { variant: "danger", label: "Cancelada", dot: true },
+  };
+
+  const item = map[status] || { variant: "neutral", label: status, dot: false };
+
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 12,
-        color: s.color,
-        borderLeft: `3px solid ${s.border}`,
-        paddingLeft: 8,
-        lineHeight: "20px",
-      }}
-    >
-      {status}
-    </span>
+    <Badge variant={item.variant} size={size} dot={item.dot} className={className}>
+      {item.label}
+    </Badge>
   );
 }

@@ -1,59 +1,66 @@
-import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
-import { LIMITE_DISPONIVEL, formatarMoeda } from "../services/mockOperacoes";
+import { Outlet } from "react-router-dom";
+import Header from "./Header";
+import NovaOfertaModal from "./modals/NovaOfertaModal";
+import ConfirmarOperacaoModal from "./modals/ConfirmarOperacaoModal";
+import ProcessandoOperacaoModal from "./modals/ProcessandoOperacaoModal";
+import CancelarOfertaModal from "./modals/CancelarOfertaModal";
+import { useOperacoes } from "../context/OperacoesContext";
 
-const linkStyle = ({ isActive }) => ({
-  color: isActive ? "var(--text)" : "var(--text-muted)",
-  borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent",
-  paddingBottom: 4,
-  fontSize: 13,
-});
-
-export default function Layout({ contexto, notificacoes }) {
-  const [notifAbertas, setNotifAbertas] = useState(false);
+export default function Layout() {
+  const {
+    modalNovaOfertaAberto,
+    setModalNovaOfertaAberto,
+    modalConfirmarOperacao,
+    setModalConfirmarOperacao,
+    confirmarAceiteOferta,
+    modalProcessando,
+    setModalProcessando,
+    modalCancelar,
+    setModalCancelar,
+    confirmarCancelamentoOferta,
+  } = useOperacoes();
 
   return (
-    <div className="app-shell">
-      <div
-        className="hairline"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, marginBottom: 18, flexWrap: "wrap", gap: 10 }}
-      >
-        <strong style={{ letterSpacing: ".02em" }}>MESA DE OPERAÇÕES</strong>
+    <div className="min-h-screen bg-[#F4F5F7] text-gray-900 flex flex-col font-sans">
+      <Header />
 
-        <nav style={{ display: "flex", gap: 20 }}>
-          <NavLink to="/mesa" style={linkStyle}>Mesa</NavLink>
-          <NavLink to="/historico" style={linkStyle}>Histórico</NavLink>
-          <NavLink to="/perfil" style={linkStyle}>Perfil</NavLink>
-        </nav>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Outlet />
+      </main>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
-          <span className="num" style={{ fontSize: 12, color: "var(--text-muted)" }}>
-            Limite disp.: {formatarMoeda(LIMITE_DISPONIVEL)}
-          </span>
-          <span style={{ fontSize: 12, color: "var(--ok)" }}>● Sepolia</span>
-          <button className="ghost" style={{ padding: "4px 8px" }} onClick={() => setNotifAbertas((v) => !v)}>
-            Notificações {notificacoes.length > 0 && `(${notificacoes.length})`}
-          </button>
-          {notifAbertas && (
-            <div
-              className="card"
-              style={{ position: "absolute", top: 34, right: 0, width: 260, zIndex: 10 }}
-            >
-              {notificacoes.length === 0 ? (
-                <span style={{ fontSize: 12, color: "var(--text-faint)" }}>Nenhuma notificação.</span>
-              ) : (
-                notificacoes.map((n, i) => (
-                  <div key={i} style={{ fontSize: 12, padding: "6px 0", borderBottom: i < notificacoes.length - 1 ? "1px solid var(--border)" : "none" }}>
-                    {n}
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Modais Globais */}
+      {modalNovaOfertaAberto && (
+        <NovaOfertaModal
+          isOpen={modalNovaOfertaAberto}
+          onClose={() => setModalNovaOfertaAberto(false)}
+        />
+      )}
 
-      <Outlet context={contexto} />
+      {modalConfirmarOperacao && (
+        <ConfirmarOperacaoModal
+          isOpen={Boolean(modalConfirmarOperacao)}
+          operacao={modalConfirmarOperacao}
+          onClose={() => setModalConfirmarOperacao(null)}
+          onConfirmar={(op) => confirmarAceiteOferta(op)}
+        />
+      )}
+
+      {modalProcessando && (
+        <ProcessandoOperacaoModal
+          isOpen={Boolean(modalProcessando)}
+          dadosProcessando={modalProcessando}
+          onClose={() => setModalProcessando(null)}
+        />
+      )}
+
+      {modalCancelar && (
+        <CancelarOfertaModal
+          isOpen={Boolean(modalCancelar)}
+          operacao={modalCancelar}
+          onClose={() => setModalCancelar(null)}
+          onConfirmar={(op) => confirmarCancelamentoOferta(op)}
+        />
+      )}
     </div>
   );
 }
