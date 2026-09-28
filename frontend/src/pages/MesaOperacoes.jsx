@@ -4,6 +4,7 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import OfertaCard from "../components/OfertaCard";
 import OfertaRow from "../components/OfertaRow";
+import Paginacao, { ITENS_POR_PAGINA } from "../components/ui/Paginacao";
 import {
   formatarMoeda,
 } from "../services/mockOperacoes";
@@ -30,6 +31,7 @@ export default function MesaOperacoes() {
 
   const [busca, setBusca] = useState("");
   const [visualizacao, setVisualizacao] = useState("grid"); // "grid" | "table"
+  const [pagina, setPagina] = useState(1);
 
   const ofertasDisponiveis = useMemo(() =>
     operacoes.filter((op) => !op.minha && op.status === "Ofertada"),
@@ -56,6 +58,8 @@ export default function MesaOperacoes() {
       return true;
     });
   }, [ofertasDisponiveis, busca]);
+  const paginaAtual = Math.min(pagina, Math.max(1, Math.ceil(operacoesFiltradas.length / ITENS_POR_PAGINA)));
+  const operacoesDaPagina = operacoesFiltradas.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
 
   // Propostas selecionadas para cálculo do impacto no limite
   const propostasSelecionadas = useMemo(() => {
@@ -209,7 +213,7 @@ export default function MesaOperacoes() {
               type="text"
               placeholder="Buscar por banco, valor, taxa ou ID..."
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={(e) => { setBusca(e.target.value); setPagina(1); }}
               className="w-full pl-9 pr-3.5 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange placeholder:text-gray-400"
             />
           </div>
@@ -266,6 +270,7 @@ export default function MesaOperacoes() {
               className="mt-4"
               onClick={() => {
                 setBusca("");
+                setPagina(1);
               }}
             >
               Limpar filtros
@@ -273,7 +278,7 @@ export default function MesaOperacoes() {
           </div>
         ) : visualizacao === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {operacoesFiltradas.map((operacao) => (
+            {operacoesDaPagina.map((operacao) => (
               <OfertaCard key={operacao.id} operacao={operacao} />
             ))}
           </div>
@@ -294,7 +299,7 @@ export default function MesaOperacoes() {
                   </tr>
                 </thead>
                 <tbody>
-                  {operacoesFiltradas.map((operacao) => (
+                  {operacoesDaPagina.map((operacao) => (
                     <OfertaRow key={operacao.id} operacao={operacao} />
                   ))}
                 </tbody>
@@ -302,6 +307,7 @@ export default function MesaOperacoes() {
             </div>
           </div>
         )}
+        <Paginacao pagina={paginaAtual} totalItens={operacoesFiltradas.length} onPaginaChange={setPagina} mostrarSempre />
       </div>
     </div>
   );

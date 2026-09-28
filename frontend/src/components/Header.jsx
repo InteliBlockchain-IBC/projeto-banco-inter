@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useOperacoes } from "../context/OperacoesContext";
 import { ChevronDown, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
@@ -9,6 +9,9 @@ export default function Header() {
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [modoEscuro, setModoEscuro] = useState(() => window.localStorage.getItem("inter-theme") === "dark");
+  const navRef = useRef(null);
+  const abaRefs = useRef([]);
+  const [indicador, setIndicador] = useState({ left: 0, width: 0 });
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -28,6 +31,19 @@ export default function Header() {
     ? ofertaDetalhada?.minha ? 1 : 0
     : abas.findIndex(({ to }) => to === pathname);
   const naoLidas = notificacoes.filter((item) => !item.lida).length;
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    const aba = abaRefs.current[abaAtiva];
+    if (!nav || !aba) return;
+
+    const medir = () => setIndicador({ left: aba.offsetLeft, width: aba.offsetWidth });
+    medir();
+    const observer = new ResizeObserver(medir);
+    observer.observe(nav);
+    observer.observe(aba);
+    return () => observer.disconnect();
+  }, [abaAtiva]);
 
   function alternarNotificacoes() {
     setDropdownAberto(false);
@@ -50,11 +66,12 @@ export default function Header() {
         </div>
 
         {/* Centro: Abas de navegação */}
-        <nav className="relative order-3 grid h-12 w-full grid-cols-3 items-stretch border-b border-gray-200 md:order-none md:h-16 md:w-[420px] lg:w-[450px]">
+        <nav ref={navRef} className="relative order-3 flex h-12 w-full items-stretch justify-center gap-2 border-b border-gray-200 sm:gap-4 md:order-none md:h-16 md:w-auto md:gap-3 lg:gap-5">
           {abas.map(({ to, label, curta }, index) => (
             <NavLink
               key={to}
               to={to}
+              ref={(node) => { abaRefs.current[index] = node; }}
               className={() =>
                 `inline-flex h-full items-center justify-center px-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none ${
                   abaAtiva === index
@@ -67,15 +84,7 @@ export default function Header() {
               <span className="hidden lg:inline">{label}</span>
             </NavLink>
           ))}
-          {abaAtiva >= 0 && (
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-[-2px] left-0 w-1/3 transition-transform duration-300 ease-in-out motion-reduce:transition-none"
-              style={{ transform: `translateX(${abaAtiva * 100}%)` }}
-            >
-              <span className="mx-1 block h-1 rounded-full bg-inter-orange" />
-            </span>
-          )}
+          {abaAtiva >= 0 && <span aria-hidden="true" className="pointer-events-none absolute bottom-[-2px] h-1 rounded-full bg-inter-orange transition-[left,width] duration-300 ease-in-out motion-reduce:transition-none" style={{ left: indicador.left, width: indicador.width }} />}
         </nav>
 
         {/* Lado Direito: Notificações e seletor de banco */}

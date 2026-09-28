@@ -7,6 +7,7 @@ import GraficoMinhasOfertas from "../components/GraficoMinhasOfertas";
 import OfertaCard from "../components/OfertaCard";
 import OfertaRow from "../components/OfertaRow";
 import Button from "../components/ui/Button";
+import Paginacao, { ITENS_POR_PAGINA } from "../components/ui/Paginacao";
 
 export default function MinhasOfertas() {
   const { operacoes, setModalNovaOfertaAberto } = useOperacoes();
@@ -17,6 +18,7 @@ export default function MinhasOfertas() {
   const [datasAbertas, setDatasAbertas] = useState(false);
   const menuDatasRef = useRef(null);
   const [visualizacao, setVisualizacao] = useState("grid");
+  const [pagina, setPagina] = useState(1);
   const [periodo, setPeriodo] = useState("semana");
 
   useEffect(() => {
@@ -59,12 +61,15 @@ export default function MinhasOfertas() {
     return [oferta.id, oferta.contraparte, oferta.valor, oferta.taxaCdi]
       .some((valor) => String(valor).toLowerCase().includes(termo));
   }), [minhasOfertas, filtroStatus, dataInicial, dataFinal, busca]);
+  const paginaAtual = Math.min(pagina, Math.max(1, Math.ceil(ofertasFiltradas.length / ITENS_POR_PAGINA)));
+  const ofertasDaPagina = ofertasFiltradas.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
 
   function limparFiltros() {
     setBusca("");
     setFiltroStatus("Todas");
     setDataInicial("");
     setDataFinal("");
+    setPagina(1);
   }
 
   return (
@@ -127,7 +132,7 @@ export default function MinhasOfertas() {
             <button
               key={status}
               type="button"
-              onClick={() => setFiltroStatus(status)}
+              onClick={() => { setFiltroStatus(status); setPagina(1); }}
               aria-pressed={filtroStatus === status}
               className={`cursor-pointer whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
                 filtroStatus === status
@@ -148,7 +153,7 @@ export default function MinhasOfertas() {
               aria-label="Buscar nas minhas ofertas"
               placeholder="Buscar por banco, valor, taxa ou ID..."
               value={busca}
-              onChange={(event) => setBusca(event.target.value)}
+              onChange={(event) => { setBusca(event.target.value); setPagina(1); }}
               className="w-full rounded-lg border border-gray-200 bg-gray-50/60 py-1.5 pl-9 pr-3.5 text-sm outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange"
             />
           </div>
@@ -172,7 +177,7 @@ export default function MinhasOfertas() {
                     type="date"
                     value={dataInicial}
                     max={dataFinal || undefined}
-                    onChange={(event) => setDataInicial(event.target.value)}
+                    onChange={(event) => { setDataInicial(event.target.value); setPagina(1); }}
                     className="w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange"
                   />
                 </label>
@@ -182,12 +187,12 @@ export default function MinhasOfertas() {
                     type="date"
                     value={dataFinal}
                     min={dataInicial || undefined}
-                    onChange={(event) => setDataFinal(event.target.value)}
+                    onChange={(event) => { setDataFinal(event.target.value); setPagina(1); }}
                     className="w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange"
                   />
                 </label>
                 {(dataInicial || dataFinal) && (
-                  <button type="button" onClick={() => { setDataInicial(""); setDataFinal(""); }} className="self-start cursor-pointer rounded-lg px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                  <button type="button" onClick={() => { setDataInicial(""); setDataFinal(""); setPagina(1); }} className="self-start cursor-pointer rounded-lg px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                     Limpar datas
                   </button>
                 )}
@@ -216,7 +221,7 @@ export default function MinhasOfertas() {
           </div>
         ) : visualizacao === "grid" ? (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {ofertasFiltradas.map((oferta) => <OfertaCard key={oferta.id} operacao={oferta} mostrarComparacao={false} mostrarSalvar={false} />)}
+            {ofertasDaPagina.map((oferta) => <OfertaCard key={oferta.id} operacao={oferta} mostrarComparacao={false} mostrarSalvar={false} />)}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-2xs">
@@ -228,10 +233,11 @@ export default function MinhasOfertas() {
                   <th className="px-3 py-3">Status</th><th className="px-3 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody>{ofertasFiltradas.map((oferta) => <OfertaRow key={oferta.id} operacao={oferta} mostrarComparacao={false} mostrarSalvar={false} />)}</tbody>
+              <tbody>{ofertasDaPagina.map((oferta) => <OfertaRow key={oferta.id} operacao={oferta} mostrarComparacao={false} mostrarSalvar={false} />)}</tbody>
             </table>
           </div>
         )}
+        <Paginacao pagina={paginaAtual} totalItens={ofertasFiltradas.length} onPaginaChange={setPagina} />
       </section>
     </div>
   );

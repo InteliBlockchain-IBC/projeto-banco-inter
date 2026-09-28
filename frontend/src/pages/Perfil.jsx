@@ -47,33 +47,30 @@ export default function Perfil() {
                   </span>
                 </div>
               </div>
-              <Badge variant="success" size="sm" dot>
-                Ativo
-              </Badge>
             </div>
 
             <div className="divide-y divide-gray-100 text-sm mt-2">
               <div className="py-3 flex justify-between">
                 <span className="text-xs text-gray-500">CNPJ</span>
-                <span className="font-mono text-xs font-semibold text-gray-900">
+                <span className="text-sm font-semibold tabular-nums text-gray-900">
                   00.123.456/0001-99
                 </span>
               </div>
               <div className="py-3 flex justify-between">
                 <span className="text-xs text-gray-500">Código COMPE / ISPB</span>
-                <span className="font-mono text-xs font-semibold text-gray-900">
+                <span className="text-sm font-semibold tabular-nums text-gray-900">
                   077 • 00416968
                 </span>
               </div>
               <div className="py-3 flex justify-between">
                 <span className="text-xs text-gray-500">Segmento Bacen</span>
-                <span className="text-xs font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-gray-900">
                   S1 / Conglomerado Prudencial
                 </span>
               </div>
               <div className="py-3 flex justify-between">
                 <span className="text-xs text-gray-500">Mesa Autorizada</span>
-                <span className="text-xs font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-gray-900">
                   Crédito Interfinanceiro (CDI / Over)
                 </span>
               </div>
@@ -162,7 +159,7 @@ export default function Perfil() {
                 <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
                   Limite Total Concedido
                 </span>
-                <div className="text-xl font-bold text-gray-900 mt-1">
+                <div className="text-xl font-bold tabular-nums text-gray-900 mt-1">
                   {formatarMoeda(LIMITE_TOTAL)}
                 </div>
               </div>
@@ -171,7 +168,7 @@ export default function Perfil() {
                 <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
                   Volume Utilizado na Grade
                 </span>
-                <div className="text-lg font-bold text-gray-700 mt-1">
+                <div className="text-xl font-bold tabular-nums text-gray-900 mt-1">
                   {formatarMoeda(LIMITE_UTILIZADO_PADRAO)}
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
@@ -186,7 +183,7 @@ export default function Perfil() {
                 <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
                   Disponível para Tomada
                 </span>
-                <div className="text-xl font-bold text-emerald-700 mt-1 font-mono">
+                <div className="text-xl font-bold tabular-nums text-emerald-700 mt-1">
                   {formatarMoeda(LIMITE_TOTAL - LIMITE_UTILIZADO_PADRAO)}
                 </div>
               </div>

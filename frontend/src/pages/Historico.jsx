@@ -4,6 +4,7 @@ import StatusBadge from "../components/StatusBadge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
+import Paginacao, { ITENS_POR_PAGINA } from "../components/ui/Paginacao";
 import {
   formatarDataHora,
   formatarMoeda,
@@ -31,6 +32,7 @@ export default function Historico() {
   const [statusFiltro, setStatusFiltro] = useState("Todas");
   const [visualizacao, setVisualizacao] = useState("grid");
   const [mostrarSalvas, setMostrarSalvas] = useState(false);
+  const [pagina, setPagina] = useState(1);
   const totalSalvas = operacoes.filter((operacao) => operacao.salva).length;
   const ofertasRecentes = useMemo(() => BANCOS_RECENTES.map((banco) => ({
     banco,
@@ -67,6 +69,8 @@ export default function Historico() {
   const listaHistorico = useMemo(() => operacoesElegiveis
     .filter((operacao) => mostrarSalvas ? operacao.salva : statusFiltro === "Todas" || operacao.status === statusFiltro.slice(0, -1))
     .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm)), [operacoesElegiveis, mostrarSalvas, statusFiltro]);
+  const paginaAtual = Math.min(pagina, Math.max(1, Math.ceil(listaHistorico.length / ITENS_POR_PAGINA)));
+  const operacoesDaPagina = listaHistorico.slice((paginaAtual - 1) * ITENS_POR_PAGINA, paginaAtual * ITENS_POR_PAGINA);
 
   function handleExportar() {
     const csvContent =
@@ -110,7 +114,7 @@ export default function Historico() {
               type="text"
               placeholder="Buscar por ID, banco, hash ou bloco..."
               value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              onChange={(e) => { setBusca(e.target.value); setPagina(1); }}
               className="w-full pl-9 pr-3.5 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange placeholder:text-gray-400"
             />
           </div>
@@ -121,7 +125,7 @@ export default function Historico() {
               <button
                 key={p}
                 type="button"
-                onClick={() => setPeriodo(p)}
+                onClick={() => { setPeriodo(p); setPagina(1); }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
                   periodo === p
                     ? "bg-inter-orange text-white font-semibold"
@@ -227,7 +231,7 @@ export default function Historico() {
             <button
               key={status}
               type="button"
-              onClick={() => { setStatusFiltro(status === "Salvas" ? "Todas" : status); setMostrarSalvas(status === "Salvas"); }}
+              onClick={() => { setStatusFiltro(status === "Salvas" ? "Todas" : status); setMostrarSalvas(status === "Salvas"); setPagina(1); }}
               aria-pressed={status === "Salvas" ? mostrarSalvas : !mostrarSalvas && statusFiltro === status}
               className={`inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${(status === "Salvas" ? mostrarSalvas : !mostrarSalvas && statusFiltro === status) ? "bg-inter-orange font-semibold text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"}`}
             >
@@ -248,7 +252,7 @@ export default function Historico() {
           </div>
         ) : visualizacao === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {listaHistorico.map((op) => (
+            {operacoesDaPagina.map((op) => (
               <Card
                 key={op.id}
                 className="p-4 flex flex-col justify-between transition-all"
@@ -338,7 +342,7 @@ export default function Historico() {
                 </tr>
               </thead>
               <tbody>
-                {listaHistorico.map((op) => (
+                {operacoesDaPagina.map((op) => (
                   <tr key={op.id} className="border-b border-gray-100 text-xs last:border-b-0">
                     <td className="px-3 py-3 font-mono font-semibold text-gray-600">{op.id}</td>
                     <td className="px-3 py-3 font-medium text-gray-900">{op.contraparte}</td>
@@ -362,6 +366,7 @@ export default function Historico() {
             </table>
           </div>
         )}
+        <Paginacao pagina={paginaAtual} totalItens={listaHistorico.length} onPaginaChange={setPagina} />
       </div>
     </div>
   );
