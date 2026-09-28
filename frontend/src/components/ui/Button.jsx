@@ -19,11 +19,15 @@ export default function Button({
 
   const variantStyles = {
     primary:
-      "bg-neutral-900 text-white hover:bg-black active:bg-neutral-950 shadow-xs border border-transparent",
+      "bg-inter-orange text-white hover:bg-inter-orange-hover active:bg-inter-orange-active shadow-xs border border-transparent",
     secondary:
       "bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-300 border border-gray-200",
     outline:
       "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 active:bg-gray-100",
+    details:
+      "bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 hover:border-gray-400 hover:text-gray-900 hover:shadow-sm active:bg-gray-300",
+    export:
+      "bg-white text-gray-700 border border-gray-300 hover:bg-inter-orange hover:border-inter-orange hover:text-white active:bg-inter-orange-active",
     ghost:
       "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 active:bg-gray-200 border border-transparent",
     destructive:

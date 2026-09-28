@@ -95,7 +95,7 @@ export default function NovaOfertaModal({ isOpen, onClose }) {
               placeholder="50.000.000,00"
               value={valor}
               onChange={handleValorChange}
-              className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-inter-orange focus:outline-none focus:ring-1 focus:ring-inter-orange"
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function NovaOfertaModal({ isOpen, onClose }) {
                 setErro("");
                 setTaxaCdi(e.target.value);
               }}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3.5 pr-12 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3.5 pr-12 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-inter-orange focus:outline-none focus:ring-1 focus:ring-inter-orange"
             />
             <span className="absolute right-3.5 top-2.5 text-xs font-medium text-gray-500">
               % CDI
@@ -128,7 +128,7 @@ export default function NovaOfertaModal({ isOpen, onClose }) {
           <select
             value={prazoDias}
             onChange={(e) => setPrazoDias(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:border-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 focus:border-inter-orange focus:outline-none focus:ring-1 focus:ring-inter-orange cursor-pointer"
           >
             {prazos.map((p) => (
               <option key={p.dias} value={p.dias}>

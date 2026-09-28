@@ -16,6 +16,8 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertTriangle,
+  XCircle,
+  Bookmark,
 } from "lucide-react";
 
 export default function DetalheOperacao() {
@@ -25,6 +27,7 @@ export default function DetalheOperacao() {
     operacoes,
     solicitarAceiteOferta,
     solicitarCancelamentoOferta,
+    alternarSalvar,
   } = useOperacoes();
 
   const operacao = operacoes.find(
@@ -51,6 +54,8 @@ export default function DetalheOperacao() {
   const isOfertada = operacao.status === "Ofertada";
   const isLiquidada = operacao.status === "Liquidada";
   const isCancelada = operacao.status === "Cancelada";
+  const isNegada = operacao.status === "Negada";
+  const rotaRetorno = isMinha ? "/minhas-ofertas" : "/mesa";
 
   const percentualOperacao = Math.min(
     100,
@@ -58,7 +63,7 @@ export default function DetalheOperacao() {
   );
   const limiteDisponivelApos = Math.max(
     0,
-    LIMITE_TOTAL - LIMITE_UTILIZADO_PADRAO - operacao.valor
+    LIMITE_TOTAL - LIMITE_UTILIZADO_PADRAO - (isCancelada || isNegada ? 0 : operacao.valor)
   );
 
   return (
@@ -67,11 +72,11 @@ export default function DetalheOperacao() {
       <div>
         <button
           type="button"
-          onClick={() => navigate("/mesa")}
+          onClick={() => navigate(rotaRetorno)}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors cursor-pointer group"
         >
           <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Voltar para a mesa</span>
+          <span>{isMinha ? "Voltar para minhas ofertas" : "Voltar para a mesa"}</span>
         </button>
       </div>
 
@@ -81,7 +86,9 @@ export default function DetalheOperacao() {
           {isMinha ? "Detalhe da Minha Oferta" : "Detalhe da Operação"}
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Confira as informações da oferta e tome uma decisão.
+          {isMinha
+            ? "Acompanhe o status da sua oferta e as ações disponíveis."
+            : "Confira as informações da oferta e tome uma decisão."}
         </p>
       </div>
 
@@ -102,6 +109,28 @@ export default function DetalheOperacao() {
                 Criada em {formatarDataHora(operacao.criadaEm)}
               </span>
             </div>
+
+            {isMinha && isOfertada && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+                <strong className="block text-sm">Aguardando aceite</strong>
+                Sua oferta está publicada e ainda não foi aceita. Você pode cancelá-la enquanto estiver neste status.
+              </div>
+            )}
+            {isMinha && operacao.status === "Aceita" && (
+              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800">
+                <strong className="block text-sm">Oferta aceita</strong>
+                A contraparte aceitou esta oferta. O cancelamento não está mais disponível.
+              </div>
+            )}
+            {isMinha && isNegada && (
+              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-800">
+                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden="true" />
+                <div>
+                  <strong className="block text-sm">Oferta negada</strong>
+                  Esta oferta não foi aceita pela contraparte e não está mais disponível na mesa.
+                </div>
+              </div>
+            )}
 
             {/* Ciclo de Vida da Operação */}
             <Timeline status={operacao.status} />
@@ -207,41 +236,6 @@ export default function DetalheOperacao() {
             )}
           </Card>
 
-          {/* Barra de Ações no Rodapé */}
-          <div className="flex items-center justify-between pt-2">
-            <Button variant="outline" onClick={() => navigate("/mesa")}>
-              Voltar
-            </Button>
-
-            <div className="flex items-center gap-3">
-              {isOfertada && !isMinha && (
-                <Button
-                  variant="primary"
-                  onClick={() => solicitarAceiteOferta(operacao)}
-                >
-                  Aceitar oferta
-                </Button>
-              )}
-
-              {isOfertada && isMinha && (
-                <Button
-                  variant="destructive"
-                  onClick={() => solicitarCancelamentoOferta(operacao)}
-                >
-                  Cancelar oferta
-                </Button>
-              )}
-
-              {isLiquidada && (
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/historico")}
-                >
-                  Ver no histórico
-                </Button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Coluna Direita: Card Lateral de Limite Disponível (1/3) */}
@@ -263,31 +257,31 @@ export default function DetalheOperacao() {
                 <span>Disponível (75%)</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden flex">
-                <div className="bg-neutral-900 h-2 w-1/4" title="Utilizado" />
+                <div className="bg-inter-orange h-2 w-1/4" title="Utilizado" />
                 <div className="bg-gray-200 h-2 w-3/4" title="Disponível" />
               </div>
             </div>
 
             <div className="space-y-2.5 pt-3 border-t border-gray-100 text-xs text-gray-600">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span>Limite Total:</span>
-                <strong className="text-gray-900">{formatarMoeda(LIMITE_TOTAL)}</strong>
+                <strong className="text-right tabular-nums text-gray-900">{formatarMoeda(LIMITE_TOTAL)}</strong>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span>Utilizado Atual:</span>
-                <span className="text-gray-700">{formatarMoeda(LIMITE_UTILIZADO_PADRAO)}</span>
+                <span className="text-right tabular-nums text-gray-700">{formatarMoeda(LIMITE_UTILIZADO_PADRAO)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span>Impacto desta operação:</span>
-                <strong className="text-neutral-900 font-mono">
-                  {operacao.status === "Cancelada"
+                <strong className="text-right tabular-nums text-gray-900">
+                  {isCancelada || isNegada
                     ? "0%"
                     : `-${percentualOperacao}% (${formatarMoeda(operacao.valor)})`}
                 </strong>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-100 font-medium">
+              <div className="flex justify-between gap-3 border-t border-gray-100 pt-2 font-medium">
                 <span>Disponível projetado:</span>
-                <strong className="text-emerald-700 font-mono">
+                <strong className="text-right tabular-nums text-emerald-700">
                   {formatarMoeda(limiteDisponivelApos)}
                 </strong>
               </div>
@@ -301,6 +295,35 @@ export default function DetalheOperacao() {
               </span>
             </div>
           </Card>
+          <div className={`grid gap-3 ${!isMinha && (isOfertada || isLiquidada) ? "grid-cols-[44px_minmax(0,1fr)]" : "grid-cols-1"}`}>
+            {!isMinha && (
+              <button
+                type="button"
+                onClick={() => alternarSalvar(operacao.id)}
+                aria-pressed={operacao.salva}
+                aria-label={operacao.salva ? "Remover oferta das salvas" : "Salvar oferta"}
+                title={operacao.salva ? "Remover das salvas" : "Salvar oferta"}
+                className={`inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-gray-100 transition-colors hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inter-orange ${operacao.salva ? "text-inter-orange" : "text-gray-500"}`}
+              >
+                <Bookmark className={`h-4 w-4 transition-[fill,transform] duration-200 ${operacao.salva ? "fill-current scale-110" : ""}`} aria-hidden="true" />
+              </button>
+            )}
+            {isOfertada && !isMinha && (
+              <Button variant="primary" className="h-11 w-full whitespace-nowrap" onClick={() => solicitarAceiteOferta(operacao)}>
+                Aceitar oferta
+              </Button>
+            )}
+            {isOfertada && isMinha && (
+              <Button variant="destructive" className="h-11 w-full" onClick={() => solicitarCancelamentoOferta(operacao)}>
+                Cancelar oferta
+              </Button>
+            )}
+            {isLiquidada && (
+              <Button variant="outline" className="h-11 w-full" onClick={() => navigate("/historico")}>
+                Ver no histórico
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

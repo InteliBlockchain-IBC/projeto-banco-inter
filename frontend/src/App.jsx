@@ -3,6 +3,7 @@ import { OperacoesProvider } from "./context/OperacoesContext";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import MesaOperacoes from "./pages/MesaOperacoes";
+import MinhasOfertas from "./pages/MinhasOfertas";
 import DetalheOperacao from "./pages/DetalheOperacao";
 import Historico from "./pages/Historico";
 import Perfil from "./pages/Perfil";
@@ -19,6 +20,7 @@ export default function App() {
           {/* Rotas Autenticadas com Shell de Navegação */}
           <Route element={<Layout />}>
             <Route path="/mesa" element={<MesaOperacoes />} />
+            <Route path="/minhas-ofertas" element={<MinhasOfertas />} />
             <Route path="/operacoes/:id" element={<DetalheOperacao />} />
             <Route path="/historico" element={<Historico />} />
             <Route path="/perfil" element={<Perfil />} />

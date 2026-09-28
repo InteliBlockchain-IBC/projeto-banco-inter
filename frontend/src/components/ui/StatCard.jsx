@@ -8,20 +8,20 @@ export default function StatCard({
 }) {
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-200/90 shadow-xs p-4 flex-1 min-w-[200px] transition-all hover:border-gray-300 ${className}`}
+      className={`flex min-h-40 min-w-0 flex-col justify-between rounded-xl border border-gray-200/90 bg-white p-5 shadow-xs ${className}`}
     >
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-xs font-medium text-gray-500">
           {label}
         </span>
-        {badge && <span>{badge}</span>}
-        {Icon && <Icon className="w-4 h-4 text-gray-400" />}
+        {Icon && <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-50"><Icon className="h-4 w-4 text-inter-orange" aria-hidden="true" /></span>}
       </div>
-      <div className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-        {value}
+      <div className="flex flex-wrap items-center gap-2">
+        <strong className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{value}</strong>
+        {badge && <span>{badge}</span>}
       </div>
       {subvalue && (
-        <div className="text-xs text-gray-500 mt-1">{subvalue}</div>
+        <div className="text-xs text-gray-500">{subvalue}</div>
       )}
     </div>
   );

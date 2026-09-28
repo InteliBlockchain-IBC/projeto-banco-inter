@@ -45,7 +45,7 @@ export default function CancelarOfertaModal({
             Voltar
           </Button>
           <Button
-            variant="primary"
+            variant="destructive-solid"
             onClick={() => onConfirmar(operacao)}
           >
             Confirmar cancelamento

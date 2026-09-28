@@ -1,11 +1,22 @@
+import { useState } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
 import { formatarMoeda, LIMITE_TOTAL, LIMITE_UTILIZADO_PADRAO, CARTEIRA_CONECTADA } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Wallet, ShieldCheck, CheckCircle2, ExternalLink } from "lucide-react";
 
 export default function Perfil() {
-  const { instituicaoAtual } = useOperacoes();
+  const { instituicaoAtual, perfilContato, setPerfilContato } = useOperacoes();
+  const [responsavel, setResponsavel] = useState(perfilContato.responsavel);
+  const [email, setEmail] = useState(perfilContato.email);
+  const [salvo, setSalvo] = useState(false);
+
+  function salvarContato(event) {
+    event.preventDefault();
+    setPerfilContato({ responsavel: responsavel.trim(), email: email.trim() });
+    setSalvo(true);
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
@@ -67,6 +78,25 @@ export default function Perfil() {
                 </span>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-sm font-bold text-gray-900">Editar perfil</h2>
+            <p className="mt-1 text-xs text-gray-500">Atualize os dados de contato da mesa de operações.</p>
+            <form onSubmit={salvarContato} className="mt-4 space-y-4">
+              <label className="block text-xs font-medium text-gray-600">
+                Responsável
+                <input type="text" required value={responsavel} onChange={(event) => { setResponsavel(event.target.value); setSalvo(false); }} className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange" />
+              </label>
+              <label className="block text-xs font-medium text-gray-600">
+                E-mail de contato
+                <input type="email" required value={email} onChange={(event) => { setEmail(event.target.value); setSalvo(false); }} className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange" />
+              </label>
+              <div className="flex items-center gap-3">
+                <Button type="submit" size="sm">Salvar alterações</Button>
+                {salvo && <span role="status" className="text-xs text-emerald-700">Dados salvos.</span>}
+              </div>
+            </form>
           </Card>
 
           {/* Carteira e Infraestrutura Web3 */}
@@ -145,7 +175,7 @@ export default function Perfil() {
                   {formatarMoeda(LIMITE_UTILIZADO_PADRAO)}
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                  <div className="bg-neutral-900 h-1.5 w-1/4 rounded-full" />
+                  <div className="bg-inter-orange h-1.5 w-1/4 rounded-full" />
                 </div>
                 <span className="text-[11px] text-gray-400 mt-1 block">
                   25% do teto operacional

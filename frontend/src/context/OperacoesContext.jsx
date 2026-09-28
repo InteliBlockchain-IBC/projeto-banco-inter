@@ -10,13 +10,22 @@ import {
 
 const OperacoesContext = createContext(null);
 
-let proximoIdNumero = 11;
+let proximoIdNumero = 42;
 
 export function OperacoesProvider({ children }) {
   const [operacoes, setOperacoes] = useState(operacoesIniciais);
   const [instituicaoAtual, setInstituicaoAtual] = useState("Banco A");
+  const [perfilContato, setPerfilContato] = useState({ responsavel: "Mesa de Operações", email: "operacoes@bancoa.com.br" });
   const [selecionadasComparacao, setSelecionadasComparacao] = useState(["#001", "#003"]);
-  const [notificacoes, setNotificacoes] = useState([]);
+  const [notificacoes, setNotificacoes] = useState(() => ["Aceita", "Negada", "Cancelada"].map((status) => {
+    const oferta = operacoesIniciais
+      .filter((item) => item.minha && item.status === status)
+      .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm))[0];
+    if (!oferta) return null;
+    const acao = { Aceita: "aceita", Negada: "negada", Cancelada: "cancelada" }[status];
+    const tipo = { Aceita: "sucesso", Negada: "negada", Cancelada: "aviso" }[status];
+    return { id: `inicial-${status}`, mensagem: `Sua oferta ${oferta.id} foi ${acao}.`, tipo, hora: oferta.criadaEm, rawId: oferta.rawId, lida: false };
+  }).filter(Boolean));
   
   // Modais globais
   const [modalNovaOfertaAberto, setModalNovaOfertaAberto] = useState(false);
@@ -24,9 +33,13 @@ export function OperacoesProvider({ children }) {
   const [modalProcessando, setModalProcessando] = useState(null); // { operacao, hash, step } ou null
   const [modalCancelar, setModalCancelar] = useState(null); // operacao ou null
 
-  function notificar(mensagem, tipo = "info") {
-    const id = Date.now();
-    setNotificacoes((prev) => [{ id, mensagem, tipo, hora: new Date() }, ...prev].slice(0, 10));
+  function notificar(mensagem, tipo = "info", rawId = null) {
+    const id = `${Date.now()}-${Math.random()}`;
+    setNotificacoes((prev) => [{ id, mensagem, tipo, hora: new Date().toISOString(), rawId, lida: false }, ...prev].slice(0, 10));
+  }
+
+  function marcarNotificacoesComoLidas() {
+    setNotificacoes((prev) => prev.map((item) => item.lida ? item : { ...item, lida: true }));
   }
 
   // Publicar nova oferta
@@ -53,7 +66,7 @@ export function OperacoesProvider({ children }) {
     };
 
     setOperacoes((prev) => [nova, ...prev]);
-    notificar(`Oferta ${nova.id} publicada com sucesso na mesa.`, "sucesso");
+    notificar(`Oferta ${nova.id} publicada com sucesso na mesa.`, "sucesso", nova.rawId);
     setModalNovaOfertaAberto(false);
     return nova;
   }
@@ -77,7 +90,7 @@ export function OperacoesProvider({ children }) {
     setOperacoes((prev) =>
       prev.map((o) => (o.id === operacao.id ? { ...o, status: "Aceita" } : o))
     );
-    notificar(`Operação ${operacao.id} enviada para validação blockchain...`, "info");
+    notificar(`Oferta ${operacao.id} foi aceita e enviada para validação.`, "sucesso", operacao.rawId);
 
     // Simula confirmação na rede Sepolia (step 3 -> Liquidada)
     setTimeout(() => {
@@ -94,21 +107,31 @@ export function OperacoesProvider({ children }) {
             : o
         )
       );
-      notificar(`Operação ${operacao.id} liquidada com sucesso no bloco Sepolia!`, "sucesso");
+      notificar(`Operação ${operacao.id} liquidada com sucesso no bloco Sepolia!`, "sucesso", operacao.rawId);
     }, 2800);
   }
 
   // Iniciar fluxo de cancelamento -> abre modal de cancelamento
   function solicitarCancelamentoOferta(operacao) {
-    setModalCancelar(operacao);
+    const atual = operacoes.find((oferta) => oferta.id === operacao.id);
+    if (atual?.minha && atual.status === "Ofertada") {
+      setModalCancelar(atual);
+    }
   }
 
   // Confirmar cancelamento
   function confirmarCancelamentoOferta(operacao) {
+    const atual = operacoes.find((oferta) => oferta.id === operacao.id);
+    if (!atual?.minha || atual.status !== "Ofertada") {
+      setModalCancelar(null);
+      return;
+    }
     setOperacoes((prev) =>
-      prev.map((o) => (o.id === operacao.id ? { ...o, status: "Cancelada" } : o))
+      prev.map((o) => (o.id === operacao.id && o.minha && o.status === "Ofertada"
+        ? { ...o, status: "Cancelada" }
+        : o))
     );
-    notificar(`Oferta ${operacao.id} foi cancelada e removida da mesa.`, "aviso");
+    notificar(`Oferta ${operacao.id} foi cancelada e removida da mesa.`, "aviso", operacao.rawId);
     setModalCancelar(null);
   }
 
@@ -132,10 +155,13 @@ export function OperacoesProvider({ children }) {
         operacoes,
         instituicaoAtual,
         setInstituicaoAtual,
+        perfilContato,
+        setPerfilContato,
         selecionadasComparacao,
         alternarSelecaoComparacao,
         notificacoes,
         notificar,
+        marcarNotificacoesComoLidas,
         publicarNovaOferta,
         solicitarAceiteOferta,
         confirmarAceiteOferta,

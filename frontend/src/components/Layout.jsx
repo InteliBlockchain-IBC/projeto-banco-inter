@@ -21,7 +21,7 @@ export default function Layout() {
   } = useOperacoes();
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] text-gray-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--bg-page)] text-gray-900 flex flex-col font-sans">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">

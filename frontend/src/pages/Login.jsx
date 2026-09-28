@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { ArrowRight, Layers, ShieldCheck } from "lucide-react";
+import InterLogo from "../components/InterLogo";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,12 +23,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#F4F5F7] flex flex-col justify-between p-4 sm:p-8">
       {/* Topo: Logo Inter */}
       <div className="max-w-6xl w-full mx-auto">
-        <div className="flex items-baseline">
-          <span className="text-2xl font-black tracking-tighter text-neutral-900 font-sans">
-            inter
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] ml-0.5 mb-1" />
-        </div>
+        <InterLogo />
       </div>
 
       {/* Conteúdo Central: Card Duplo */}
@@ -36,10 +32,7 @@ export default function Login() {
           {/* Lado Esquerdo: Apresentação da Mesa */}
           <div className="bg-white/80 rounded-2xl border border-gray-200/90 p-8 flex flex-col justify-between shadow-xs">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 mb-4">
-                <Layers className="w-3.5 h-3.5" />
-                Mesa de Operações
-              </div>
+
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight leading-snug">
                 Conectando instituições para um mercado financeiro mais eficiente.
               </h1>
@@ -71,10 +64,6 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Ambiente institucional autorizado • Sepolia Testnet</span>
-            </div>
           </div>
 
           {/* Lado Direito: Formulário de Acesso */}

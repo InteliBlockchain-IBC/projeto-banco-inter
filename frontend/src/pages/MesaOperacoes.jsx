@@ -6,16 +6,12 @@ import OfertaCard from "../components/OfertaCard";
 import OfertaRow from "../components/OfertaRow";
 import {
   formatarMoeda,
-  BANCOS_RECENTES,
-  STATUS_LIST,
 } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import {
-  Plus,
   Search,
   LayoutGrid,
   List,
-  ArrowUpRight,
   TrendingUp,
   Percent,
   Activity,
@@ -30,40 +26,18 @@ export default function MesaOperacoes() {
     cdiVigente,
     volume24h,
     selecionadasComparacao,
-    setModalNovaOfertaAberto,
   } = useOperacoes();
 
-  const [filtroStatus, setFiltroStatus] = useState("Todas");
   const [busca, setBusca] = useState("");
   const [visualizacao, setVisualizacao] = useState("grid"); // "grid" | "table"
-  const [somenteMinhas, setSomenteMinhas] = useState(false);
 
-  // Contagem para as abas
-  const contagens = useMemo(() => {
-    return {
-      Todas: operacoes.length,
-      Ofertadas: operacoes.filter((o) => o.status === "Ofertada").length,
-      Aceitas: operacoes.filter((o) => o.status === "Aceita").length,
-      Liquidadas: operacoes.filter((o) => o.status === "Liquidada").length,
-      Canceladas: operacoes.filter((o) => o.status === "Cancelada").length,
-    };
-  }, [operacoes]);
+  const ofertasDisponiveis = useMemo(() =>
+    operacoes.filter((op) => !op.minha && op.status === "Ofertada"),
+  [operacoes]);
 
-  // Lista filtrada
+  // A mesa mostra apenas ofertas abertas de outras instituições.
   const operacoesFiltradas = useMemo(() => {
-    return operacoes.filter((op) => {
-      // Filtro de aba
-      if (filtroStatus !== "Todas" && op.status !== filtroStatus.slice(0, -1) && op.status !== filtroStatus) {
-        // Tratar plural (Ofertadas -> Ofertada)
-        const singular = filtroStatus.endsWith("s")
-          ? filtroStatus.slice(0, -1)
-          : filtroStatus;
-        if (op.status !== singular) return false;
-      }
-
-      // Filtro somente minhas
-      if (somenteMinhas && !op.minha) return false;
-
+    return ofertasDisponiveis.filter((op) => {
       // Filtro de busca
       if (busca.trim()) {
         const termo = busca.toLowerCase();
@@ -81,7 +55,7 @@ export default function MesaOperacoes() {
 
       return true;
     });
-  }, [operacoes, filtroStatus, busca, somenteMinhas]);
+  }, [ofertasDisponiveis, busca]);
 
   // Propostas selecionadas para cálculo do impacto no limite
   const propostasSelecionadas = useMemo(() => {
@@ -95,10 +69,11 @@ export default function MesaOperacoes() {
   const totalPercentualComprometido = useMemo(() => {
     return Math.min(100, Math.round((totalValorSelecionado / limiteTotal) * 100));
   }, [totalValorSelecionado, limiteTotal]);
+  const escalaGrafico = Math.max(10, Math.ceil(Math.max(...propostasSelecionadas.map((prop) => prop.valor / limiteTotal * 100), 0) / 10) * 10);
 
   return (
     <div className="space-y-8 pb-12">
-      {/* 1. Topo: Título da Página e Botão Nova Oferta */}
+      {/* 1. Topo da página */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
@@ -109,18 +84,11 @@ export default function MesaOperacoes() {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setModalNovaOfertaAberto(true)}
-          className="self-start sm:self-auto shadow-sm"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          Nova oferta
-        </Button>
       </div>
 
+      <div className="grid items-stretch gap-5 lg:grid-cols-2">
       {/* 2. Cards de Métricas / KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard
           label="Limite disponível"
           value={formatarMoeda(limiteTotal)}
@@ -141,135 +109,98 @@ export default function MesaOperacoes() {
         />
         <StatCard
           label="Ofertas ativas"
-          value={contagens.Ofertadas + contagens.Aceitas}
-          subvalue="Na mesa de liquidez"
+          value={ofertasDisponiveis.length}
+          subvalue="Disponíveis para negociação"
           icon={Layers}
         />
       </div>
 
-      {/* 3. Seção "Acessadas recentemente" */}
-      <div>
-        <div className="mb-3">
-          <h2 className="text-sm font-bold text-gray-900 tracking-tight">
-            Acessadas recentemente
-          </h2>
-          <p className="text-xs text-gray-500">
-            Bancos consultados recentemente na mesa de crédito
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {BANCOS_RECENTES.map((banco) => (
-            <Card
-              key={banco.id}
-              className="p-4 flex flex-col justify-between hover:border-gray-300 transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-sm text-gray-900 group-hover:text-black transition-colors">
-                  {banco.nome}
-                </span>
-                <span className="text-xs font-mono font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
-                  {banco.taxaCdi}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mb-3">
-                Linha disponível: <strong className="text-gray-800">{formatarMoeda(banco.limite)}</strong> ({banco.prazo})
-              </div>
-              <button
-                type="button"
-                onClick={() => setBusca(banco.nome)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-900 hover:text-black transition-colors cursor-pointer self-start"
-              >
-                <span>Ver novamente</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* 4. Seção "Impacto das propostas selecionadas no limite" */}
-      <Card className="p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+      {/* 3. Comparação das propostas selecionadas */}
+      <Card className="flex min-w-0 flex-col p-5 sm:p-6">
+        <div>
           <div>
-            <h2 className="text-sm font-bold text-gray-900 tracking-tight">
-              Impacto das propostas selecionadas no limite
+            <h2 className="text-base font-semibold text-gray-900">
+              Quanto cada oferta ocuparia do limite?
             </h2>
-            <p className="text-xs text-gray-500">
-              Simulação de consumo do limite de crédito caso as propostas marcadas sejam aceitas
-            </p>
+
           </div>
-          <div className="text-xs font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full self-start sm:self-auto">
-            Total selecionado: <strong className="text-gray-900 font-mono">{formatarMoeda(totalValorSelecionado)}</strong> ({totalPercentualComprometido}%)
+          <div className="mt-4 flex flex-wrap gap-5 sm:gap-6">
+            <div>
+              <div className="text-xs text-gray-500">Valor das ofertas selecionadas</div>
+              <strong className="mt-1 block text-xl font-semibold tabular-nums text-gray-900">{formatarMoeda(totalValorSelecionado)}</strong>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Consumo combinado do limite</div>
+              <strong className="mt-1 block text-xl font-semibold tabular-nums text-gray-900">{totalPercentualComprometido}%</strong>
+            </div>
           </div>
         </div>
 
-        {/* Barras Comparativas */}
+        {/* Colunas comparativas */}
         {propostasSelecionadas.length === 0 ? (
           <div className="py-4 text-center text-xs text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
             Nenhuma proposta selecionada. Marque as caixas "Comparar" nos cards para simular o impacto.
           </div>
         ) : (
-          <div className="space-y-3">
-            {propostasSelecionadas.map((prop) => {
-              const perc = Math.min(100, Math.round((prop.valor / limiteTotal) * 100));
-              return (
-                <div key={prop.id} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-medium text-gray-700">
-                      {prop.contraparte} ({prop.id})
+          <div className="mt-auto min-w-0 pt-5">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-inter-orange" />Impacto de cada oferta</span>
+              <span>Percentual do limite total</span>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="flex min-w-max items-start gap-2 pt-5">
+                <div className="relative h-40 w-9 shrink-0 text-right text-[10px] tabular-nums text-gray-500" aria-hidden="true">
+                  {[1, 0.75, 0.5, 0.25, 0].map((fracao) => (
+                    <span key={fracao} className="absolute right-0 -translate-y-1/2" style={{ top: `${(1 - fracao) * 100}%` }}>
+                      {(escalaGrafico * fracao).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%
                     </span>
-                    <span className="font-mono text-gray-900 font-semibold">
-                      {formatarMoeda(prop.valor)} • {perc}% do limite
-                    </span>
+                  ))}
+                </div>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-40" aria-hidden="true">
+                    {[0, 25, 50, 75, 100].map((posicao) => (
+                      <div key={posicao} className="absolute w-full border-t border-gray-200" style={{ top: `${posicao}%` }} />
+                    ))}
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-neutral-900 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${perc}%` }}
-                    />
+                  <div className="relative flex items-end gap-3">
+                    {propostasSelecionadas.map((prop) => {
+                      const percentual = prop.valor / limiteTotal * 100;
+                      return (
+                        <div key={prop.id} className="w-24 shrink-0 text-center sm:w-28">
+                          <div className="flex h-40 items-end justify-center">
+                            <div
+                              className="relative w-7 rounded-t-md bg-inter-orange transition-[height] duration-300 sm:w-8"
+                              style={{ height: `${Math.min(100, percentual / escalaGrafico * 100)}%` }}
+                              title={`${prop.contraparte} (${prop.id}): ${formatarMoeda(prop.valor)} · ${Math.round(percentual)}% do limite`}
+                              role="img"
+                              aria-label={`${prop.contraparte} (${prop.id}): ${formatarMoeda(prop.valor)}, ${Math.round(percentual)}% do limite`}
+                            >
+                              <span className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 text-xs font-semibold tabular-nums text-gray-900">{Math.round(percentual)}%</span>
+                            </div>
+                          </div>
+                          <div className="pt-2 text-xs text-gray-500">{prop.contraparte} ({prop.id})</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            </div>
           </div>
         )}
       </Card>
+      </div>
 
-      {/* 5. Seção "Propostas de crédito" */}
+      {/* 5. Ofertas disponíveis na mesa */}
       <div className="space-y-4">
         <div>
           <h2 className="text-base font-bold text-gray-900 tracking-tight">
-            Propostas de crédito
+            Ofertas disponíveis ({ofertasDisponiveis.length})
           </h2>
-          <p className="text-xs text-gray-500">
-            Ofertas ativas e históricas disponíveis na mesa interbancária
-          </p>
+
         </div>
 
-        {/* Abas de Filtro */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {STATUS_LIST.map((aba) => {
-            const count = contagens[aba] ?? 0;
-            const ativa = filtroStatus === aba;
-            return (
-              <button
-                key={aba}
-                type="button"
-                onClick={() => setFiltroStatus(aba)}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors cursor-pointer ${
-                  ativa
-                    ? "bg-neutral-900 text-white font-semibold shadow-2xs"
-                    : "bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200/80"
-                }`}
-              >
-                {aba} ({count})
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Barra de Busca, Filtros, Comparar e Visualização */}
+        {/* Barra de Busca, Comparar e Visualização */}
         <div className="bg-white rounded-xl border border-gray-200/90 p-3 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Campo de Busca */}
           <div className="relative flex-1">
@@ -279,24 +210,11 @@ export default function MesaOperacoes() {
               placeholder="Buscar por banco, valor, taxa ou ID..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-black focus:ring-1 focus:ring-black placeholder:text-gray-400"
+              className="w-full pl-9 pr-3.5 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:outline-none focus:border-inter-orange focus:ring-1 focus:ring-inter-orange placeholder:text-gray-400"
             />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Botão Somente Minhas */}
-            <button
-              type="button"
-              onClick={() => setSomenteMinhas((prev) => !prev)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
-                somenteMinhas
-                  ? "bg-gray-900 text-white border-transparent"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              Minhas ofertas
-            </button>
-
             {/* Botão Comparar */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 border border-gray-200 text-gray-800">
               <CheckSquare className="w-3.5 h-3.5 text-gray-500" />
@@ -337,10 +255,10 @@ export default function MesaOperacoes() {
         {operacoesFiltradas.length === 0 ? (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
             <p className="text-sm font-medium text-gray-600">
-              Nenhuma proposta encontrada com os filtros atuais.
+              Nenhuma oferta disponível encontrada.
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Tente alterar os termos de busca ou o status selecionado.
+              Tente alterar os termos de busca.
             </p>
             <Button
               variant="outline"
@@ -348,8 +266,6 @@ export default function MesaOperacoes() {
               className="mt-4"
               onClick={() => {
                 setBusca("");
-                setFiltroStatus("Todas");
-                setSomenteMinhas(false);
               }}
             >
               Limpar filtros
