@@ -1,0 +1,346 @@
+// Serviços e mocks do Crédito Interfinanceiro - Banco Inter
+
+export const CDI_VIGENTE = 10.65; // % a.a.
+export const LIMITE_TOTAL = 500000000; // R$ 500.000.000,00
+export const LIMITE_UTILIZADO_PADRAO = 125000000; // R$ 125.000.000,00 (25%)
+export const VOLUME_OFERTADO_24H = 120000000; // R$ 120.000.000,00
+export const CARTEIRA_CONECTADA = "0x82049Af37c89C2e1...7a1c";
+export const REDE_PADRAO = "Sepolia";
+
+export const STATUS_LIST = ["Todas", "Ofertadas", "Aceitas", "Liquidadas", "Negadas", "Canceladas"];
+
+export const BANCOS_RECENTES = [
+  { id: "banco-b", nome: "Banco B", taxaCdi: "101,5% CDI", limite: 45000000, prazo: "1 dia", percentualLimite: 9 },
+  { id: "banco-d", nome: "Banco D", taxaCdi: "102,0% CDI", limite: 70000000, prazo: "1 dia", percentualLimite: 14 },
+  { id: "banco-f", nome: "Banco F", taxaCdi: "101,8% CDI", limite: 30000000, prazo: "2 dias", percentualLimite: 6 },
+];
+
+// Amostras distribuídas ao longo da semana, do mês e do semestre para o gráfico.
+const ofertasHistoricasMinhas = [
+  { numero: 13, criadaEm: "2026-09-21T09:10:00", status: "Ofertada", valor: 22000000, taxa: 101.4 },
+  { numero: 14, criadaEm: "2026-09-22T08:40:00", status: "Negada", valor: 31000000, taxa: 101.7 },
+  { numero: 15, criadaEm: "2026-09-22T15:20:00", status: "Aceita", valor: 47000000, taxa: 101.5 },
+  { numero: 16, criadaEm: "2026-09-23T09:35:00", status: "Aceita", valor: 35000000, taxa: 101.8 },
+  { numero: 17, criadaEm: "2026-09-23T11:10:00", status: "Negada", valor: 28000000, taxa: 102.1 },
+  { numero: 18, criadaEm: "2026-09-23T16:05:00", status: "Aceita", valor: 54000000, taxa: 101.6 },
+  { numero: 19, criadaEm: "2026-09-24T14:25:00", status: "Aceita", valor: 33000000, taxa: 101.9 },
+  { numero: 20, criadaEm: "2026-09-24T17:40:00", status: "Ofertada", valor: 26000000, taxa: 101.3 },
+  { numero: 21, criadaEm: "2026-09-25T10:15:00", status: "Negada", valor: 39000000, taxa: 102.0 },
+  { numero: 22, criadaEm: "2026-09-25T15:50:00", status: "Aceita", valor: 44000000, taxa: 101.7 },
+  { numero: 23, criadaEm: "2026-09-26T12:30:00", status: "Negada", valor: 37000000, taxa: 101.5 },
+  { numero: 24, criadaEm: "2026-09-27T10:25:00", status: "Aceita", valor: 29000000, taxa: 101.8 },
+  { numero: 25, criadaEm: "2026-04-08T09:20:00", status: "Aceita", valor: 32000000, taxa: 101.4 },
+  { numero: 26, criadaEm: "2026-04-21T14:10:00", status: "Negada", valor: 27000000, taxa: 101.9 },
+  { numero: 27, criadaEm: "2026-05-13T11:45:00", status: "Aceita", valor: 41000000, taxa: 101.6 },
+  { numero: 28, criadaEm: "2026-06-04T08:50:00", status: "Negada", valor: 24000000, taxa: 102.0 },
+  { numero: 29, criadaEm: "2026-06-22T16:30:00", status: "Aceita", valor: 36000000, taxa: 101.7 },
+  { numero: 30, criadaEm: "2026-07-17T10:05:00", status: "Negada", valor: 30000000, taxa: 101.8 },
+  { numero: 31, criadaEm: "2026-08-06T13:15:00", status: "Aceita", valor: 49000000, taxa: 101.5 },
+  { numero: 32, criadaEm: "2026-08-25T09:55:00", status: "Negada", valor: 21000000, taxa: 102.1 },
+  { numero: 33, criadaEm: "2026-09-03T09:05:00", status: "Aceita", valor: 34000000, taxa: 101.4 },
+  { numero: 34, criadaEm: "2026-09-11T15:35:00", status: "Negada", valor: 26000000, taxa: 101.9 },
+  { numero: 35, criadaEm: "2026-09-17T10:50:00", status: "Aceita", valor: 38000000, taxa: 101.6 },
+].map(({ numero, criadaEm, status, valor, taxa }) => ({
+  id: `#${String(numero).padStart(3, "0")}`,
+  rawId: `OP-${String(numero).padStart(3, "0")}`,
+  contraparte: "Banco A (Sua oferta)",
+  valor,
+  taxaCdi: `${taxa.toFixed(1).replace(".", ",")}% CDI`,
+  taxaPercent: taxa,
+  prazoDias: 1,
+  prazoTexto: "1 dia (Overnight)",
+  status,
+  minha: true,
+  impactoLimite: Math.round((valor / LIMITE_TOTAL) * 100),
+  salva: false,
+  hash: null,
+  bloco: null,
+  criadaEm,
+}));
+
+const ofertasDisponiveisAdicionais = [
+  { numero: 36, banco: "Banco K", valor: 28000000, taxa: 101.6, prazoDias: 1, criadaEm: "2026-09-28T08:10:00" },
+  { numero: 37, banco: "Banco L", valor: 42000000, taxa: 102.1, prazoDias: 2, criadaEm: "2026-09-28T08:35:00" },
+  { numero: 38, banco: "Banco M", valor: 18000000, taxa: 101.3, prazoDias: 1, criadaEm: "2026-09-28T09:05:00" },
+  { numero: 39, banco: "Banco N", valor: 55000000, taxa: 102.4, prazoDias: 3, criadaEm: "2026-09-28T09:40:00" },
+  { numero: 40, banco: "Banco O", valor: 32000000, taxa: 101.9, prazoDias: 2, criadaEm: "2026-09-28T10:15:00" },
+  { numero: 41, banco: "Banco P", valor: 24000000, taxa: 101.7, prazoDias: 1, criadaEm: "2026-09-28T10:50:00" },
+].map(({ numero, banco, valor, taxa, prazoDias, criadaEm }) => ({
+  id: `#${String(numero).padStart(3, "0")}`,
+  rawId: `OP-${String(numero).padStart(3, "0")}`,
+  contraparte: banco,
+  valor,
+  taxaCdi: `${taxa.toFixed(1).replace(".", ",")}% CDI`,
+  taxaPercent: taxa,
+  prazoDias,
+  prazoTexto: prazoDias === 1 ? "1 dia (Overnight)" : `${prazoDias} dias`,
+  status: "Ofertada",
+  minha: false,
+  impactoLimite: Math.round((valor / LIMITE_TOTAL) * 100),
+  salva: false,
+  hash: null,
+  bloco: null,
+  criadaEm,
+}));
+
+export const operacoesIniciais = [
+  {
+    id: "#001",
+    rawId: "OP-001",
+    contraparte: "Banco B",
+    valor: 50000000,
+    taxaCdi: "101,5% CDI",
+    taxaPercent: 101.5,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Ofertada",
+    minha: false,
+    impactoLimite: 10,
+    salva: true,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-27T08:15:00",
+  },
+  {
+    id: "#002",
+    rawId: "OP-002",
+    contraparte: "Banco C",
+    valor: 30000000,
+    taxaCdi: "101,8% CDI",
+    taxaPercent: 101.8,
+    prazoDias: 2,
+    prazoTexto: "2 dias",
+    status: "Ofertada",
+    minha: false,
+    impactoLimite: 6,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-27T08:45:00",
+  },
+  {
+    id: "#003",
+    rawId: "OP-003",
+    contraparte: "Banco D",
+    valor: 75000000,
+    taxaCdi: "102,0% CDI",
+    taxaPercent: 102.0,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Aceita",
+    minha: false,
+    impactoLimite: 15,
+    salva: true,
+    hash: "0x3b92f7...81c4",
+    bloco: 6542109,
+    criadaEm: "2026-09-27T07:30:00",
+  },
+  {
+    id: "#004",
+    rawId: "OP-004",
+    contraparte: "Banco E",
+    valor: 40000000,
+    taxaCdi: "101,2% CDI",
+    taxaPercent: 101.2,
+    prazoDias: 7,
+    prazoTexto: "7 dias",
+    status: "Liquidada",
+    minha: false,
+    impactoLimite: 8,
+    salva: false,
+    hash: "0x8f3ac1e7d904b321...c21d",
+    bloco: 6541890,
+    criadaEm: "2026-09-26T16:20:00",
+  },
+  {
+    id: "#005",
+    rawId: "OP-005",
+    contraparte: "Banco A (Sua oferta)",
+    valor: 25000000,
+    taxaCdi: "101,5% CDI",
+    taxaPercent: 101.5,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Ofertada",
+    minha: true,
+    impactoLimite: 5,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-27T09:00:00",
+  },
+  {
+    id: "#006",
+    rawId: "OP-006",
+    contraparte: "Banco F",
+    valor: 35000000,
+    taxaCdi: "101,7% CDI",
+    taxaPercent: 101.7,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Ofertada",
+    minha: false,
+    impactoLimite: 7,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-27T09:12:00",
+  },
+  {
+    id: "#007",
+    rawId: "OP-007",
+    contraparte: "Banco G",
+    valor: 60000000,
+    taxaCdi: "102,2% CDI",
+    taxaPercent: 102.2,
+    prazoDias: 2,
+    prazoTexto: "2 dias",
+    status: "Cancelada",
+    minha: true,
+    impactoLimite: 12,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-26T11:15:00",
+  },
+  {
+    id: "#008",
+    rawId: "OP-008",
+    contraparte: "Banco H",
+    valor: 45000000,
+    taxaCdi: "101,4% CDI",
+    taxaPercent: 101.4,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Liquidada",
+    minha: false,
+    impactoLimite: 9,
+    salva: false,
+    hash: "0x7a4bc81290e5...93ff",
+    bloco: 6540112,
+    criadaEm: "2026-09-25T14:40:00",
+  },
+  {
+    id: "#009",
+    rawId: "OP-009",
+    contraparte: "Banco I",
+    valor: 20000000,
+    taxaCdi: "101,9% CDI",
+    taxaPercent: 101.9,
+    prazoDias: 3,
+    prazoTexto: "3 dias",
+    status: "Liquidada",
+    minha: false,
+    impactoLimite: 4,
+    salva: false,
+    hash: "0x12dca849f2...847b",
+    bloco: 6539201,
+    criadaEm: "2026-09-25T10:05:00",
+  },
+  {
+    id: "#010",
+    rawId: "OP-010",
+    contraparte: "Banco J",
+    valor: 80000000,
+    taxaCdi: "102,1% CDI",
+    taxaPercent: 102.1,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Cancelada",
+    minha: false,
+    impactoLimite: 16,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-24T15:30:00",
+  },
+  {
+    id: "#011",
+    rawId: "OP-011",
+    contraparte: "Banco A (Sua oferta)",
+    valor: 42000000,
+    taxaCdi: "101,6% CDI",
+    taxaPercent: 101.6,
+    prazoDias: 2,
+    prazoTexto: "2 dias",
+    status: "Aceita",
+    minha: true,
+    impactoLimite: 8,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-25T09:30:00",
+  },
+  {
+    id: "#012",
+    rawId: "OP-012",
+    contraparte: "Banco A (Sua oferta)",
+    valor: 18000000,
+    taxaCdi: "101,3% CDI",
+    taxaPercent: 101.3,
+    prazoDias: 1,
+    prazoTexto: "1 dia (Overnight)",
+    status: "Negada",
+    minha: true,
+    impactoLimite: 4,
+    salva: false,
+    hash: null,
+    bloco: null,
+    criadaEm: "2026-09-24T10:40:00",
+  },
+  ...ofertasHistoricasMinhas,
+  ...ofertasDisponiveisAdicionais,
+];
+
+export function formatarMoeda(valor) {
+  if (valor === undefined || valor === null || isNaN(valor)) return "R$ 0,00";
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export function formatarData(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+export function formatarDataHora(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const data = d.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const hora = d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${data} às ${hora}`;
+}
+
+export function gerarHashFicticio() {
+  const chars = "0123456789abcdef";
+  let hash = "0x";
+  for (let i = 0; i < 40; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `${hash.slice(0, 10)}...${hash.slice(-4)}`;
+}
+
+export function gerarHashCompleto() {
+  const chars = "0123456789abcdef";
+  let hash = "0x";
+  for (let i = 0; i < 64; i++) {
+    hash += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return hash;
+}

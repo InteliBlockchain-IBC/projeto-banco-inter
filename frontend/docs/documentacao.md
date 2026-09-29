@@ -1,28 +1,25 @@
-# Documentação do Frontend
 
-> **Instrução de uso:** substitua todos os campos entre colchetes e remova as
-> orientações em itálico antes da entrega.
+#  Protocolo de concessão de crédito interfinanceiro - Projeto Banco Inter- Inteli Blockchain
+
+#### Integrantes
+
+- <a href="https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/">Ana Célia Augusta Santos do Amaral</a>
+- <a href="https://www.linkedin.com/in/rodriguesgabrieleng">Gabriel Rodrigues</a>
+- <a href="https://www.linkedin.com/in/jos%C3%A9-guilherme-gon%C3%A7alves-maia/">José Guilherme Gonçalves Maia</a>
+
 
 ## Controle do documento
 
-| Campo | Preenchimento |
-| --- | --- |
-| Projeto | Protocolo de concessão de crédito interfinanceiro |
-| Parceiro | Banco Inter |
-| Equipe | Frontend |
-| Responsáveis | Ana Célia Amaral, Gabriel Rodrigues, José Maia  |
-| Versão | [Número da versão] |
-| Última atualização | [21/09/2026] |
-
 | Aplicação publicada | [Link do preview ou produção] |
-
-
 
 ## Sumário
 
 1. [Visão geral](#1-visão-geral)
 2. [Semana 1 — Descoberta e estruturação](#2-semana-1--descoberta-e-estruturação)
-   - [Fluxo de telas](#22-fluxo-de-telas)
+   - [Fluxo de telas](#21-fluxo-de-telas)
+   - [Persona principal](#22-persona-principal)
+   - [Jornadas da persona](#23-jornadas-da-persona)
+   - [User stories](#24-user-stories)
 3. [Semana 2 — Prototipação e design system](#3-semana-2--prototipação-e-design-system)
 4. [Semana 3 — Implementação das interfaces](#4-semana-3--implementação-das-interfaces)
 5. [Semana 4 — Integrações](#5-semana-4--integrações)
@@ -194,8 +191,7 @@ Mesa de Operações
 O fluxo começa no login e direciona o usuário para a Mesa de Operações, ponto
 central da aplicação. Nela, a instituição visualiza limites de crédito,
 indicadores, propostas recentes e ofertas disponíveis. O usuário pode abrir os
-detalhes de uma proposta, salvá-la para análise, comparar condições ou iniciar
-o aceite.
+detalhes de uma proposta, salvá-la para análise, comparar condições ou iniciar o aceite.
 
 No aceite, os dados da operação são revisados antes da assinatura digital. Em
 seguida, a interface acompanha o envio da transação, a confirmação na rede
@@ -203,77 +199,123 @@ Sepolia e a atualização do histórico. A Mesa também permite criar uma nova
 oferta informando valor, taxa CDI e prazo, além de acompanhar ou cancelar
 propostas próprias quando o status permitir.
 
-O Histórico reúne as transações e seus dados financeiros e de rastreabilidade,
-como contraparte, status, hash, bloco e confirmações. A navegação principal
-conecta a Mesa, o Histórico e o Perfil, enquanto as notificações informam
-mudanças relevantes nas propostas.
+O Histórico reúne as transações e seus dados financeiros e de rastreabilidade, como contraparte, status, hash, bloco e confirmações. A navegação principal conecta a Mesa, o Histórico e o Perfil, enquanto as notificações informam mudanças relevantes nas propostas.
 
-### 2.3 Personas
+### 2.2 Persona principal
 
-Três proto-personas derivadas do TAP, dos entregáveis do ciclo e dos wireframes
-(sem entrevistas; nomes, cargos e bancos fictícios). Versão completa em
-[docs/ux/personas.md](ux/personas.md); pranchas visuais na página
-"jornada do usuário" do Figma.
+A persona principal da PoC é **Marina Duarte**, operadora da Mesa de Tesouraria.
+Trata-se de uma proto-persona construída a partir do TAP, dos requisitos e dos
+wireframes; portanto, seu nome e seu perfil são fictícios e ainda devem ser
+validados com usuários ou com o parceiro.
 
-| Persona | Papel | Prioridade | O que precisa ver | Telas | Requisitos |
-| --- | --- | --- | --- | --- | --- |
-| Marina Duarte | Operadora da mesa de tesouraria (DI/overnight). Publica ofertas quando sobra caixa e aceita ofertas de terceiros quando falta. | Primária | Valor, taxa CDI, prazo, limite disponível e impacto no limite, contraparte, status, hash e confirmação | WEB 01–08, 10 | RF01, RF02, RF03, RF04, RF06, RNF02 |
-| Ricardo Sá | Gestor de tesouraria / risco de liquidez. Define limites por contraparte e supervisiona a exposição; raramente executa. | Secundária | Limite consumido vs. disponível, impacto agregado das propostas, volume 24 h, ofertas ativas, histórico filtrável | WEB 02, 09 | RF02, RF04, RF05 |
-| Camila Reis | Analista de back-office / conformidade. Concilia e audita operações; produz evidência para auditoria. | Secundária | Timestamp, partes, taxa, hash com link para o explorer da Sepolia, bloco, confirmações; busca e exportação | WEB 09, 04, 08 | RF05, RNF03 |
+<div align="center">
+  <p><strong>Figura 2 — Persona principal: Marina Duarte</strong></p>
+</div>
 
-Dores comuns às três, herdadas do TAP: checagem manual de limites, intervalo
-entre negociação e liquidação (risco de contraparte) e conciliação lenta no
-fechamento diário. O avaliador do Inter no demo day é audiência, não persona:
-a interface precisa ser legível em telão, mas é desenhada para as três acima.
+![Persona Marina Duarte, operadora da Mesa de Tesouraria](../public/assets/images/persona-marina-duarte.png)
 
-### 2.4 Jornada do operador
+<div align="center">
+  <p><em>Fonte: Elaborado pela equipe do projeto (2026).</em></p>
+</div>
 
-Jornada única da persona primária (Marina) com dois ramos conforme a posição
-de caixa do dia: **tomar crédito** (aceitar oferta de terceiro) ou **conceder
-crédito** (publicar e acompanhar a própria oferta). Versão completa, com o que
-precisa ver em cada etapa, estados da UI, dores do processo atual e emoção, em
-[docs/ux/jornada-operador.md](ux/jornada-operador.md).
+Marina acompanha diariamente a posição de caixa da instituição e participa de
+operações de crédito interfinanceiro *overnight*. Quando há falta de liquidez,
+ela avalia e aceita uma oferta de terceiro; quando há disponibilidade, registra
+e acompanha uma oferta própria. Seu objetivo é concluir essas operações dentro
+do limite da contraparte, com segurança e com evidência clara da liquidação.
 
-| Etapa | Tela | Objetivo | Requisito |
-| --- | --- | --- | --- |
-| 1. Entrar | WEB 01 | Login, carteira conectada e rede Sepolia confirmada | RNF01 |
-| 2. Ler a mesa | WEB 02 | Limite, CDI vigente, volume 24 h, ofertas ativas; comparar ofertas | RF04 |
-| 3. Analisar uma oferta | WEB 04 | Dados da oferta lado a lado com o limite da contraparte | RF02 |
-| 4A. Confirmar e assinar | WEB 05 | Revisar e assinar na carteira; aceite = liquidação atômica | RF03 |
-| 5A. Aguardar confirmação | WEB 06 | Hash visível, stepper, confirmação em até 30 s; nunca "Liquidada" otimista | RNF02, RNF03 |
-| 4B. Publicar oferta | WEB 03 | Valor, taxa CDI e prazo | RF01 |
-| 5B. Acompanhar minhas ofertas | WEB 07, 08, 10 | Status; cancelar somente enquanto Ofertada | RF06 |
-| 6. Conferir no histórico | WEB 09 | Timestamp, partes, taxa, hash, bloco, confirmações; exportar | RF05, RNF03 |
+| Aspecto | Síntese para o projeto |
+| --- | --- |
+| Motivações | Automatizar etapas, validar o limite antes do aceite, acompanhar o status em tempo real e reduzir atrasos e retrabalho. |
+| Necessidades | Consultar valor, taxa CDI, prazo, contraparte, limite disponível, status e histórico; visualizar timestamp e hash *on-chain*. |
+| Atividades principais | Registrar, analisar, aceitar, acompanhar e cancelar ofertas próprias antes do aceite; consultar operações já realizadas. |
+| Dores | Checagem manual de limite, atraso entre negociação e liquidação, risco de contraparte e conciliação lenta no fechamento diário. |
+| Resposta da PoC | Validação automática do limite, liquidação atômica no aceite, painel atualizado, histórico rastreável e cancelamento restrito ao período anterior ao aceite. |
 
-Pontos baixos da curva emocional: a assinatura (irreversível) e a espera pela
-confirmação. São as etapas que mais exigem feedback claro, estados de erro
-explícitos e nenhum estado inconsistente.
+Para a experiência, isso significa apresentar as condições da operação sem
+ambiguidade, revisar ações irreversíveis antes da assinatura e manter feedback
+contínuo até a confirmação da transação.
 
-A jornada também registra oito lacunas dos wireframes atuais (tela de
-erro/rejeição, estado "rede errada", "Perfil" sem tela, aba "Em análise" sem
-definição, "Aceita" persistida vs. transitória, atualização quando outro
-operador aceita, limite insuficiente bloqueado, destino do botão "Salvar"),
-como insumo para o protótipo da semana 2.
+### 2.3 Jornadas da persona
 
-### 2.5 User stories — opcional
+A jornada de Marina possui dois caminhos determinados pela posição de caixa do
+dia: **tomar crédito**, aceitando uma oferta disponível, ou **conceder crédito**,
+publicando uma oferta própria. Os dois caminhos começam na consulta à Mesa de
+Operações e terminam no histórico, que concentra a evidência da transação.
+
+#### Jornada A — Tomar crédito
+
+<div align="center">
+  <p><strong>Figura 3 — Marina toma crédito ao aceitar uma oferta de terceiro</strong></p>
+</div>
+
+![Jornada de Marina para tomar crédito](../public/assets/images/jornada-marina-tomar-credito.png)
+
+<div align="center">
+  <p><em>Fonte: Elaborado pela equipe do projeto (2026).</em></p>
+</div>
+
+| Etapa | Ação e necessidade principal | Resposta esperada da interface |
+| --- | --- | --- |
+| Consultar a mesa | Compara ofertas, limites, taxas e status. | Centralizar informações e permitir leitura rápida das condições. |
+| Analisar a oferta | Confere valor, taxa CDI, prazo e contraparte. | Mostrar os dados da oferta junto do limite disponível. |
+| Aceitar a oferta | Confirma a operação dentro do limite. | Validar o limite automaticamente e solicitar revisão antes da assinatura. |
+| Acompanhar a liquidação | Aguarda a conclusão da transação. | Exibir processamento, hash e confirmação em até 30 segundos, sem indicar liquidação antes da confirmação real. |
+| Consultar o histórico | Verifica se a operação foi registrada. | Apresentar timestamp, partes, taxa CDI, status e hash *on-chain*. |
+
+O momento de maior tensão ocorre entre o aceite e a confirmação. A interface
+deve deixar claro se a transação está aguardando assinatura, processando,
+liquidada ou se falhou, evitando estados inconsistentes.
+
+#### Jornada B — Conceder crédito
+
+<div align="center">
+  <p><strong>Figura 4 — Marina concede crédito ao publicar e acompanhar uma oferta própria</strong></p>
+</div>
+
+![Jornada de Marina para conceder crédito](../public/assets/images/jornada-marina-conceder-credito.png)
+
+<div align="center">
+  <p><em>Fonte: Elaborado pela equipe do projeto (2026).</em></p>
+</div>
+
+| Etapa | Ação e necessidade principal | Resposta esperada da interface |
+| --- | --- | --- |
+| Consultar a mesa | Verifica limites, taxas e operações em andamento. | Reunir a posição atual e as condições de mercado. |
+| Registrar a oferta | Informa taxa CDI, valor e prazo. | Validar os campos e confirmar a publicação da oferta. |
+| Acompanhar a oferta | Observa se a oferta continua disponível ou foi aceita. | Atualizar o status no painel sem exigir conciliação manual. |
+| Cancelar ou aguardar o aceite | Cancela enquanto a oferta ainda não foi aceita ou acompanha a liquidação após o aceite. | Permitir cancelamento somente no estado “Ofertada” e bloquear a ação após o aceite. |
+| Consultar o histórico | Confirma o registro final da operação. | Manter os dados e a evidência *on-chain* disponíveis para consulta. |
+
+Nesta jornada, a principal necessidade é confiar no estado atual da oferta.
+Se outra instituição a aceitar enquanto a tela estiver aberta, o status e as
+ações disponíveis precisam ser atualizados imediatamente.
+
+#### Diretrizes de UX extraídas das jornadas
+
+- Bloquear o aceite quando o limite for insuficiente e explicar o motivo.
+- Identificar carteira desconectada ou rede diferente da Sepolia antes da operação.
+- Exigir revisão explícita antes de assinar um aceite ou cancelamento.
+- Mostrar estados de carregamento, rejeição, falha e demora na confirmação.
+- Exibir o hash assim que a transação for enviada e só usar o status “Liquidada” após a confirmação.
+- Atualizar ofertas aceitas ou canceladas por outra parte e remover ações que deixaram de ser válidas.
+
+### 2.4 User stories
+
+As histórias abaixo consideram Marina Duarte como usuária principal e cobrem os dois caminhos da jornada: tomar e conceder crédito. Os critérios descrevem o
+ comportamento mínimo esperado da interface e devem ser detalhados em cenários
+de teste durante o refinamento.
 
 | ID | Requisito relacionado | História | Critérios de aceitação | Prioridade | Status |
 | --- | --- | --- | --- | --- | --- |
-| US-01 | RF01 | Como operador, quero criar uma oferta com taxa CDI, valor e prazo para disponibilizar crédito à contraparte. | Dados válidos devem permitir a confirmação e o registro da oferta. | [Definir] | Planejada |
-| US-02 | RF02 | Como operador, quero que o limite da contraparte seja validado automaticamente para evitar um aceite sem cobertura. | O aceite só deve avançar quando houver limite disponível suficiente. | [Definir] | Planejada |
-| US-03 | RF03 | Como operador, quero que a troca do token e a liquidação sejam atômicas para reduzir o risco de contraparte. | O aceite deve iniciar uma única transação e informar sucesso ou falha. | [Definir] | Planejada |
-| US-04 | RF04 | Como operador, quero visualizar limites, taxas e status em tempo real para decidir e acompanhar as operações. | A mesa deve apresentar os dados atualizados e estados distinguíveis. | [Definir] | Planejada |
-| US-05 | RF05 | Como operador, quero consultar o histórico para rastrear as operações realizadas. | Cada registro deve permitir consultar timestamp, partes, taxa CDI e hash. | [Definir] | Planejada |
-| US-06 | RF06 | Como operador ofertante, quero cancelar uma oferta ainda não aceita para retirá-la do mercado. | A ação deve estar disponível antes do aceite e indisponível depois dele. | [Definir] | Planejada |
+| US-01 | RF01 | Como Marina, quero registrar uma oferta informando valor, taxa CDI e prazo para disponibilizar o caixa excedente a outras instituições. | Os três campos são obrigatórios e validados; antes da publicação, a interface apresenta um resumo; após a confirmação, a oferta aparece em “Minhas ofertas” com status **Ofertada**. | Alta | Backlog |
+| US-02 | RF02 | Como Marina, quero que o limite da contraparte seja validado automaticamente antes do aceite para não concluir uma operação sem cobertura. | A interface mostra o limite disponível e o impacto da oferta; o limite é revalidado no aceite; se for insuficiente, a operação é bloqueada e a mensagem informa o motivo. | Crítica | Backlog |
+| US-03 | RF03, RNF02 | Como Marina, quero aceitar uma oferta e acompanhar a liquidação em uma única transação para reduzir o risco de contraparte. | Antes da assinatura, a interface exibe o resumo da operação e a carteira conectada; após o envio, mostra processamento e hash; o status muda para **Liquidada** somente após confirmação, prevista em até 30 segundos; rejeição, falha ou demora são informadas sem criar estado inconsistente. | Crítica | Backlog |
+| US-04 | RF04 | Como Marina, quero visualizar limites, taxas e status atualizados na Mesa para decidir e acompanhar as operações com rapidez. | A Mesa exibe limite disponível, CDI vigente e ofertas com valor, taxa, prazo, contraparte e status; mudanças de aceite ou cancelamento atualizam a oferta e as ações disponíveis sem exigir recarregamento manual. | Alta | Backlog |
+| US-05 | RF05, RNF03 | Como Marina, quero consultar o histórico das operações para confirmar a liquidação e ter evidências para a conciliação. | O histórico permite localizar e abrir uma operação; cada registro apresenta timestamp, partes, valor, taxa CDI, prazo, status e hash *on-chain*; quando disponível, o hash direciona ao explorador da Sepolia. | Alta | Backlog |
+| US-06 | RF06 | Como Marina, quero cancelar uma oferta própria ainda não aceita para retirá-la do mercado quando as condições mudarem. | A ação de cancelamento aparece somente enquanto a oferta está **Ofertada**; a interface solicita revisão e confirmação; após o aceite por outra instituição, a ação é removida ou bloqueada e o novo status é apresentado. | Alta | Backlog |
+| US-07 | RNF01 | Como Marina, quero identificar a carteira e a rede conectadas antes de assinar para evitar uma operação no ambiente incorreto. | A interface informa a carteira e a rede atuais; operações são bloqueadas quando a carteira está desconectada ou fora da Sepolia; a mensagem orienta a conexão ou troca de rede. | Crítica | Backlog |
 
-### 2.6 Evidências e links da semana
-
-| Entregável | Link ou caminho | Responsável | Status |
-| --- | --- | --- | --- |
-| Wireframes | [Preencher] | [Preencher] | [Preencher] |
-| Fluxo de navegação | [Preencher] | [Preencher] | [Preencher] |
-| Personas e jornada | [docs/ux/](ux/README.md) · página "jornada do usuário" do Figma | José Maia | Proposta v0.1, a validar na sprint review |
-| User stories | [Preencher] | [Preencher] | [Preencher] |
 
 ---
 

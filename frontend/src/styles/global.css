@@ -1,0 +1,183 @@
+/* Estilos globais e tokens de design do Banco Inter - Crédito Interfinanceiro */
+
+:root {
+  --bg-page: #F4F5F7;
+  --bg-surface: #FFFFFF;
+  --color-primary: var(--color-inter-orange);
+  --border-subtle: #E5E7EB;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-page: #09070d;
+  --bg-surface: #202020;
+  --border-subtle: #404040;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg-page);
+  color: #f3f4f6;
+}
+
+html[data-theme="dark"] [class~="bg-white"] {
+  background-color: var(--bg-surface);
+}
+
+html[data-theme="dark"] :is([class~="bg-gray-50"], [class~="bg-gray-50/60"], [class~="bg-gray-50/80"], [class~="bg-gray-100"], [class~="bg-gray-100/80"]) {
+  background-color: #2c2c2c;
+}
+
+html[data-theme="dark"] :is([class~="bg-gray-200"], [class~="bg-gray-200/80"]) {
+  background-color: #3a3a3a;
+}
+
+html[data-theme="dark"] :is([class~="hover:bg-gray-50"], [class~="hover:bg-gray-100"], [class~="hover:bg-gray-200"]):hover {
+  background-color: #383838;
+}
+
+html[data-theme="dark"] [class~="hover:bg-inter-orange"]:hover {
+  background-color: var(--color-inter-orange);
+}
+
+html[data-theme="dark"] [class~="hover:bg-orange-100"]:hover {
+  background-color: #513422;
+}
+
+html[data-theme="dark"] [class~="hover:bg-rose-50"]:hover {
+  background-color: #51303b;
+}
+
+html[data-theme="dark"] [class~="bg-orange-50"] {
+  background-color: #3d291d;
+}
+
+html[data-theme="dark"] :is([class~="bg-rose-50"], [class~="bg-rose-50/70"]) {
+  background-color: #3d2630;
+}
+
+html[data-theme="dark"] :is([class~="bg-emerald-50"], [class~="bg-emerald-50/70"]) {
+  background-color: #193b35;
+}
+
+html[data-theme="dark"] [class~="bg-amber-50"] {
+  background-color: #3d321f;
+}
+
+html[data-theme="dark"] [class~="bg-blue-50"] {
+  background-color: #20344e;
+}
+
+html[data-theme="dark"] :is([class~="text-gray-900"], [class~="text-gray-800"], [class~="text-neutral-900"], [class~="text-black"]) {
+  color: #f5f5f5;
+}
+
+html[data-theme="dark"] :is([class~="text-gray-700"], [class~="text-gray-600"]) {
+  color: #dedede;
+}
+
+html[data-theme="dark"] :is([class~="text-gray-500"], [class~="text-gray-400"]) {
+  color: #b2b2b2;
+}
+
+html[data-theme="dark"] :is([class~="text-gray-300"], [class~="text-gray-200"]) {
+  color: #d2d2d2;
+}
+
+html[data-theme="dark"] [class~="text-blue-700"] {
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] :is([class~="text-rose-700"], [class~="text-rose-800"], [class~="text-rose-600"]) {
+  color: #fda4af;
+}
+
+html[data-theme="dark"] :is([class~="text-emerald-700"], [class~="text-emerald-800"]) {
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] :is([class~="text-amber-700"], [class~="text-amber-900"]) {
+  color: #fcd34d;
+}
+
+html[data-theme="dark"] :is([class~="border-gray-100"], [class~="border-gray-200"], [class~="border-gray-200/80"], [class~="border-gray-200/90"], [class~="border-gray-300"], [class~="border-gray-400"]) {
+  border-color: var(--border-subtle);
+}
+
+html[data-theme="dark"] :is([class~="border-rose-200"], [class~="border-emerald-200"], [class~="border-amber-200"]) {
+  border-color: #5b4b4e;
+}
+
+html[data-theme="dark"] [class~="divide-gray-100"] > :not(:last-child) {
+  border-color: var(--border-subtle);
+}
+
+/* Cards se separam do fundo pela cor e pelo espaço, sem contorno no tema escuro. */
+html[data-theme="dark"] :is(div, section, article)[class~="bg-white"]:is([class~="rounded-xl"], [class~="rounded-2xl"])[class~="border"] {
+  border-color: transparent;
+}
+
+html[data-theme="dark"] [class~="bg-white/80"] {
+  background-color: var(--bg-surface);
+}
+
+html[data-theme="dark"] [class~="bg-[#F4F5F7]"] {
+  background-color: var(--bg-page);
+}
+
+html[data-theme="dark"] :is(input, select, textarea)[class~="bg-white"] {
+  background-color: #2c2c2c;
+}
+
+html[data-theme="dark"] :is(input, select, textarea)::placeholder {
+  color: #aaa;
+}
+
+html[data-theme="dark"] :is(input, select, textarea) {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #09070d;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+/* Scrollbar sutil e limpa */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F5F7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Suporte a classes utilitárias de animação suave */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
