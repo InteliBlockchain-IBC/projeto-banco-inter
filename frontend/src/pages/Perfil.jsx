@@ -2,12 +2,16 @@ import { useState } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
-import { formatarMoeda, LIMITE_TOTAL, LIMITE_UTILIZADO_PADRAO, CARTEIRA_CONECTADA } from "../services/mockOperacoes";
+import { formatarMoeda, LIMITE_TOTAL, LIMITE_UTILIZADO_PADRAO } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useCarteira } from "../context/CarteiraContext";
+import CarteiraControles from "../components/CarteiraControles";
+import { METAMASK_DOWNLOAD_URL } from "../services/metamask";
 import { Wallet, ShieldCheck, CheckCircle2, ExternalLink } from "lucide-react";
 
 export default function Perfil() {
   const { instituicaoAtual, perfilContato, setPerfilContato } = useOperacoes();
+  const { conta, conectada, disponivel, rede, naSepolia } = useCarteira();
   const [responsavel, setResponsavel] = useState(perfilContato.responsavel);
   const [email, setEmail] = useState(perfilContato.email);
   const [salvo, setSalvo] = useState(false);
@@ -105,8 +109,8 @@ export default function Perfil() {
                   Carteira Blockchain & Chaves
                 </h2>
               </div>
-              <Badge variant="neutral" size="sm">
-                Rede: Sepolia
+              <Badge variant={conectada && naSepolia ? "success" : "neutral"} size="sm">
+                {conectada ? `Rede: ${rede}` : "Não conectada"}
               </Badge>
             </div>
 
@@ -115,31 +119,35 @@ export default function Perfil() {
                 <span className="text-gray-500 block mb-1">
                   Endereço público da carteira operadora
                 </span>
-                <div className="flex items-center justify-between bg-gray-50 px-3.5 py-2.5 rounded-lg border border-gray-200 font-mono text-gray-800">
-                  <span>{CARTEIRA_CONECTADA}</span>
-                  <a
-                    href="https://sepolia.etherscan.io"
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-3.5 py-2.5 rounded-lg border border-gray-200 font-mono text-gray-800">
+                  <span className="min-w-0 break-all">{conta || "Nenhuma carteira conectada"}</span>
+                  {conectada && naSepolia && <a
+                    href={`https://sepolia.etherscan.io/address/${conta}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-gray-500 hover:text-black flex items-center gap-1"
                   >
                     <span>Etherscan</span>
                     <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  </a>}
                 </div>
               </div>
 
+              <CarteiraControles />
+              {!disponivel && <p className="text-gray-500">Use a extensão da <a href={METAMASK_DOWNLOAD_URL} target="_blank" rel="noreferrer" className="font-medium text-inter-orange underline">MetaMask</a> neste navegador para conectar sua carteira.</p>}
+              {conectada && !naSepolia && <p role="status" className="text-amber-700">Sua carteira está em {rede}. Troque para Sepolia para usar a rede de testes do projeto.</p>}
+
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <span className="text-gray-400 block mb-1">Status do Nó</span>
-                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Sincronizado
+                  <span className="text-gray-400 block mb-1">Status da carteira</span>
+                  <span className={`font-semibold flex items-center gap-1 ${conectada ? "text-emerald-700" : "text-gray-500"}`} role="status">
+                    {conectada && <CheckCircle2 className="w-3.5 h-3.5" />} {conectada ? "Conectada" : "Não conectada"}
                   </span>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
                   <span className="text-gray-400 block mb-1">Tipo de Assinatura</span>
                   <span className="font-semibold text-gray-800">
-                    ECDSA secp256k1
+                    {conectada ? "ECDSA secp256k1" : "—"}
                   </span>
                 </div>
               </div>

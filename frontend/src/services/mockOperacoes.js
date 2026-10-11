@@ -4,8 +4,6 @@ export const CDI_VIGENTE = 10.65; // % a.a.
 export const LIMITE_TOTAL = 500000000; // R$ 500.000.000,00
 export const LIMITE_UTILIZADO_PADRAO = 125000000; // R$ 125.000.000,00 (25%)
 export const VOLUME_OFERTADO_24H = 120000000; // R$ 120.000.000,00
-export const CARTEIRA_CONECTADA = "0x82049Af37c89C2e1...7a1c";
-export const REDE_PADRAO = "Sepolia";
 
 export const STATUS_LIST = ["Todas", "Ofertadas", "Aceitas", "Liquidadas", "Negadas", "Canceladas"];
 

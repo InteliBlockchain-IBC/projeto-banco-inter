@@ -3,6 +3,7 @@ import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useOperacoes } from "../context/OperacoesContext";
 import { ChevronDown, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
 import InterLogo from "./InterLogo";
+import CarteiraControles from "./CarteiraControles";
 
 export default function Header() {
   const { instituicaoAtual, operacoes, notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
@@ -89,6 +90,7 @@ export default function Header() {
 
         {/* Lado Direito: Notificações e seletor de banco */}
         <div className="relative flex h-16 items-center gap-2">
+          <CarteiraControles compacto />
           <button
             type="button"
             onClick={alternarNotificacoes}
