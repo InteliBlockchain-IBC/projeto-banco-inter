@@ -593,17 +593,25 @@ src/
 
 ### 5.1 Integração com a API
 
+Cliente em `src/services/api.js`, adaptado em `src/services/adaptadorOfertas.js`. Contrato: `backend-banco-inter/docs/api.md` (v0.4.0). Respostas de sucesso vêm em `{ data, meta }`; erros seguem RFC 9457 (`application/problem+json`) e viram `ErroApi` com `tipo` (`nao-encontrada`, `invalida`, `indisponivel`, `inesperado`) e `correlationId`. Em desenvolvimento, `/api` passa pelo proxy do Vite (o backend ainda não libera CORS).
+
 | Tela/ação | Método | Endpoint | Dados enviados | Dados recebidos | Tratamento de erro |
 | --- | --- | --- | --- | --- | --- |
-| [Preencher] | [GET/POST/etc.] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
+| Detalhe — dados da oferta | GET | `/api/offers/{id}` | UUID da oferta (rota `/operacoes/:id`) | `Offer`: partes, `amountCents`, `rateCdiBps`, `termDays`, `status`, `createTxHash`, `settlement` | 404/400 → "Operação não encontrada"; rede/5xx → "API indisponível" + "Tentar novamente" |
+| Detalhe — transações on-chain | GET | `/api/offers/{id}/events` | UUID da oferta | `ChainEvent[]` (`eventName`, `txHash`, `blockNumber`, `blockTimestamp`) | Falha não bloqueia a tela: usa `createTxHash` e `settlement.txHash` da própria oferta e avisa |
+| Detalhe — limite do tomador | GET | `/api/credit-limits/{wallet}` | Carteira do tomador | `availableLimitCents`, `isRegistered`, `observedBlock` | Falha mostra "Limite indisponível no momento" só no card |
+| Mesa — ofertas abertas | GET | `/api/offers?status=offered` | `limit`/`offset` (pagina até `meta.total`) | `Offer[]` paginado | Esqueleto, mensagem de indisponibilidade e nova tentativa |
+| Histórico — todas as ofertas | GET | `/api/offers` | `limit`/`offset` (pagina até `meta.total`) | `Offer[]` paginado | "Não foi possível carregar o histórico" + "Tentar novamente" |
 
 ### 5.2 Dados reais nas telas
 
 | Tela | Fonte dos dados | Transformações | Atualização | Evidência |
 | --- | --- | --- | --- | --- |
-| Mesa de operações | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Detalhe da operação | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Histórico | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
+| Mesa de operações | `GET /api/offers?status=offered` | Centavos → BRL exato (`BigInt`), bps → "% CDI", status da API → rótulo pt-BR | Ao abrir a tela e em "Tentar novamente". KPIs e "Minhas ofertas" seguem simulados até a carteira estar integrada | `src/pages/MesaOperacoes.jsx` |
+| Detalhe da operação | `GET /api/offers/{id}`, `/events` e `/api/credit-limits/{wallet}` | Idem, mais agrupamento de `OfferAccepted` + `OfferSettled` (mesmo hash, DvP) e hash abreviado 6 + 4 | Consulta a cada 10 s enquanto a oferta está `Ofertada` e a aba está visível (RNF02 ≤ 30 s); botão "Atualizar" | `src/pages/DetalheOperacaoApi.jsx` |
+| Histórico | `GET /api/offers` | Idem; hash da liquidação com link para o explorer | Ao abrir a tela e em "Tentar novamente" | `src/pages/Historico.jsx` |
+
+**Mapeamento de status:** `offered` → Ofertada, `settled` → Liquidada, `cancelled` → Cancelada, `rejected` → Negada, `expired` → Expirada. "Aceita" não é persistido: aceite e liquidação acontecem na mesma transação (DvP), então aparece só como etapa da linha do tempo.
 
 ### 5.3 Conexão da carteira
 
@@ -633,7 +641,7 @@ src/
 | Ação que inicia a assinatura | Confirmação de uma ação *on-chain*, como oferta, aceite ou cancelamento [validar com o contrato]. |
 | Confirmação solicitada | Resumo da instituição, valor, taxa CDI, prazo e ação. |
 | Local de exibição do hash | Detalhe da operação e histórico. |
-| Link para o explorador | Explorador da Sepolia [URL a definir]. |
+| Link para o explorador | `https://sepolia.etherscan.io/tx/<hash>` (endereços em `/address/<carteira>`), gerado só para hashes válidos (`0x` + 64 hex). Componente `HashTransacao` com botão de copiar. |
 | Evidência | [Preencher] |
 
 ### 5.5 Estados de interface
@@ -643,16 +651,16 @@ src/
 | Consulta de operações | Indicador durante a busca. | Dados e horários atualizados. | Mensagem sem operações. | Mensagem de indisponibilidade. | Nova tentativa. |
 | Conexão da carteira | Solicitação em andamento. | Conta e rede exibidas. | Não se aplica. | Carteira ausente, acesso recusado ou rede incorreta. | Reconectar ou trocar para Sepolia. |
 | Assinatura da operação | Aguardando ação na carteira. | Assinatura enviada. | Não se aplica. | Assinatura rejeitada ou falha no envio. | Tentar novamente sem duplicar a operação. |
-| Confirmação da operação | Transação pendente, com tempo decorrido. | Status liquidada e hash visível. | Não se aplica. | Falha ou ausência de confirmação. | Atualizar status ou repetir consulta; regra a definir. |
+| Confirmação da operação | Transação pendente, com tempo decorrido. | Status liquidada e hash visível. | Não se aplica. | Falha ou ausência de confirmação. | Consulta automática a cada 10 s enquanto a oferta está aberta; se uma atualização falhar, mantém o último dado confirmado e avisa o horário. |
 
 ### 5.6 Evidências e links da semana
 
 | Entregável | Link ou caminho | Responsável | Status |
 | --- | --- | --- | --- |
-| Integração com a API | [Preencher] | [Preencher] | [Preencher] |
+| Integração com a API | Branch `feat/detalhe-operacao-api` (`src/services/api.js`, `src/hooks/`) | Guilherme Maia | Em revisão |
 | Conexão da carteira | [Preencher] | [Preencher] | [Preencher] |
 | Assinatura e exibição do hash | [Preencher] | [Preencher] | [Preencher] |
-| Estados de carregamento e erro | [Preencher] | [Preencher] | [Preencher] |
+| Estados de carregamento e erro | `src/components/ui/EstadoCarregando.jsx`, `src/components/ui/EstadoErro.jsx` | Guilherme Maia | Em revisão |
 
 ---
 
