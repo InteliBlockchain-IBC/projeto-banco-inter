@@ -3,6 +3,7 @@ import StatusBadge from "../components/StatusBadge";
 import Timeline from "../components/Timeline";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import Badge from "../components/ui/Badge";
 import {
   formatarMoeda,
   formatarDataHora,
@@ -10,6 +11,7 @@ import {
   LIMITE_UTILIZADO_PADRAO,
 } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
+import DetalheOperacaoApi from "./DetalheOperacaoApi";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -20,8 +22,16 @@ import {
   Bookmark,
 } from "lucide-react";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Ofertas da API usam UUID. Ids no formato OP-xxx são os dados simulados
+// de "Minhas ofertas", que dependem da carteira conectada (ainda não integrada).
 export default function DetalheOperacao() {
   const { id } = useParams();
+  return UUID.test(id) ? <DetalheOperacaoApi key={id} id={id} /> : <DetalheOperacaoSimulada id={id} />;
+}
+
+function DetalheOperacaoSimulada({ id }) {
   const navigate = useNavigate();
   const {
     operacoes,
@@ -104,6 +114,7 @@ export default function DetalheOperacao() {
                   Operação {operacao.id}
                 </span>
                 <StatusBadge status={operacao.status} />
+                <Badge variant="warning" size="sm">Dado simulado</Badge>
               </div>
               <span className="text-xs text-gray-400">
                 Criada em {formatarDataHora(operacao.criadaEm)}
