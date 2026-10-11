@@ -5,13 +5,12 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import Paginacao, { ITENS_POR_PAGINA } from "../components/ui/Paginacao";
-import {
-  formatarDataHora,
-  formatarMoeda,
-  BANCOS_RECENTES,
-  STATUS_LIST,
-} from "../services/mockOperacoes";
+import HashTransacao from "../components/HashTransacao";
+import EstadoCarregando from "../components/ui/EstadoCarregando";
+import EstadoErro from "../components/ui/EstadoErro";
+import { formatarDataHora, formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useOfertasApi } from "../hooks/useOfertasApi";
 import {
   Search,
   Download,
@@ -23,8 +22,31 @@ import {
   Bookmark,
 } from "lucide-react";
 
+// "Aceita" não existe na API: aceite e liquidação são a mesma transação (DvP).
+const STATUS_LIST = ["Todas", "Ofertadas", "Liquidadas", "Negadas", "Canceladas", "Expiradas"];
+
+function formatarValor(op) {
+  return op.valorFormatado ?? formatarMoeda(op.valor);
+}
+
+function HashLiquidacao({ op }) {
+  if (op.hash) return <HashTransacao valor={op.hash} />;
+  return (
+    <span className="text-[11px] text-gray-500">
+      {op.status === "Ofertada" ? "Aguardando liquidação" : "Sem liquidação"}
+    </span>
+  );
+}
+
 export default function Historico() {
-  const { operacoes, alternarSalvar } = useOperacoes();
+  const { comSalvas, alternarSalvar } = useOperacoes();
+  const {
+    status: statusLista,
+    operacoes: ofertasApi,
+    erro: erroLista,
+    recarregar,
+  } = useOfertasApi();
+  const operacoes = useMemo(() => comSalvas(ofertasApi), [comSalvas, ofertasApi]);
   const navigate = useNavigate();
 
   const [busca, setBusca] = useState("");
@@ -34,12 +56,18 @@ export default function Historico() {
   const [mostrarSalvas, setMostrarSalvas] = useState(false);
   const [pagina, setPagina] = useState(1);
   const totalSalvas = operacoes.filter((operacao) => operacao.salva).length;
-  const ofertasRecentes = useMemo(() => BANCOS_RECENTES.map((banco) => ({
-    banco,
-    oferta: operacoes
-      .filter((operacao) => !operacao.minha && operacao.contraparte === banco.nome)
-      .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm))[0],
-  })).filter(({ oferta }) => oferta), [operacoes]);
+  // Oferta mais recente de cada instituição ofertante (até 3).
+  const ofertasRecentes = useMemo(() => {
+    const porInstituicao = new Map();
+    [...operacoes]
+      .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm))
+      .forEach((oferta) => {
+        if (!porInstituicao.has(oferta.contraparte)) porInstituicao.set(oferta.contraparte, oferta);
+      });
+    return [...porInstituicao.entries()]
+      .slice(0, 3)
+      .map(([nome, oferta]) => ({ banco: { id: nome, nome }, oferta }));
+  }, [operacoes]);
 
   const periodos = ["Hoje", "7 dias", "30 dias", "Todos"];
   const operacoesElegiveis = useMemo(() => {
@@ -198,7 +226,7 @@ export default function Historico() {
                   {banco.nome}
                 </span>
                 <span className="block truncate text-[11px] text-gray-400">
-                  {oferta.id} • {oferta.taxaCdi} • {formatarMoeda(oferta.valor)}
+                  {oferta.id} • {oferta.taxaCdi} • {formatarValor(oferta)}
                 </span>
               </div>
               <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-neutral-900">
@@ -241,7 +269,16 @@ export default function Historico() {
           ))}
         </div>
 
-        {listaHistorico.length === 0 ? (
+        {statusLista === "carregando" ? (
+          <EstadoCarregando linhas={5} rotulo="Carregando histórico" />
+        ) : statusLista === "erro" ? (
+          <EstadoErro
+            titulo="Não foi possível carregar o histórico"
+            mensagem={erroLista?.tipo === "indisponivel" ? "A API está indisponível no momento." : "A consulta ao histórico falhou."}
+            correlationId={erroLista?.correlationId}
+            onTentarNovamente={recarregar}
+          />
+        ) : listaHistorico.length === 0 ? (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
             <p className="text-sm font-medium text-gray-600">
               {mostrarSalvas ? "Nenhuma proposta salva encontrada." : "Nenhuma operação encontrada com os critérios informados."}
@@ -281,7 +318,7 @@ export default function Historico() {
                       Valor
                     </span>
                     <div className="text-lg font-bold text-gray-900 font-sans tracking-tight">
-                      {formatarMoeda(op.valor)}
+                      {formatarValor(op)}
                     </div>
                   </div>
 
@@ -304,11 +341,9 @@ export default function Historico() {
                   {/* Hash Blockchain se houver */}
                   <div className="mb-3">
                     <span className="text-[11px] text-gray-400 block mb-0.5">
-                      Hash do Bloco
+                      Hash da liquidação
                     </span>
-                    <span className="text-[11px] font-mono text-gray-600 bg-gray-50 px-2 py-1 rounded block truncate border border-gray-100">
-                      {op.hash || "Pendente de confirmação"}
-                    </span>
+                    <HashLiquidacao op={op} />
                   </div>
                 </div>
 
@@ -337,7 +372,7 @@ export default function Historico() {
                   <th className="px-3 py-3">Taxa CDI</th>
                   <th className="px-3 py-3">Prazo</th>
                   <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Hash do bloco</th>
+                  <th className="px-3 py-3">Hash da liquidação</th>
                   <th className="px-3 py-3 text-right">Ações</th>
                 </tr>
               </thead>
@@ -347,11 +382,11 @@ export default function Historico() {
                     <td className="px-3 py-3 font-mono font-semibold text-gray-600">{op.id}</td>
                     <td className="px-3 py-3 font-medium text-gray-900">{op.contraparte}</td>
                     <td className="whitespace-nowrap px-3 py-3 text-gray-600">{formatarDataHora(op.criadaEm)}</td>
-                    <td className="whitespace-nowrap px-3 py-3 font-semibold text-gray-900">{formatarMoeda(op.valor)}</td>
+                    <td className="whitespace-nowrap px-3 py-3 font-semibold text-gray-900">{formatarValor(op)}</td>
                     <td className="px-3 py-3 font-mono text-gray-700">{op.taxaCdi}</td>
                     <td className="whitespace-nowrap px-3 py-3 text-gray-600">{op.prazoTexto || `${op.prazoDias} dia(s)`}</td>
                     <td className="px-3 py-3"><StatusBadge status={op.status} size="sm" /></td>
-                    <td className="max-w-40 truncate px-3 py-3 font-mono text-gray-500" title={op.hash || "Pendente de confirmação"}>{op.hash || "Pendente"}</td>
+                    <td className="whitespace-nowrap px-3 py-3"><HashLiquidacao op={op} /></td>
                     <td className="px-3 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button type="button" onClick={() => alternarSalvar(op.id)} aria-label={op.salva ? `Remover ${op.id} das salvas` : `Salvar ${op.id}`} title={op.salva ? "Remover das salvas" : "Salvar proposta"} className={`cursor-pointer rounded-md p-1 transition-colors ${op.salva ? "text-inter-orange hover:bg-orange-50" : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"}`}>

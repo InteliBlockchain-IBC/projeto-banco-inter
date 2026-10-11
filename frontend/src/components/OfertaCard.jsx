@@ -4,6 +4,7 @@ import Button from "./ui/Button";
 import { formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Bookmark } from "lucide-react";
+import { MENSAGEM_ASSINATURA_PENDENTE } from "../services/adaptadorOfertas";
 
 export default function OfertaCard({ operacao, mostrarComparacao = true, mostrarSalvar = true }) {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
 
   const isSelecionada = selecionadasComparacao.includes(operacao.id);
   const isOfertada = operacao.status === "Ofertada";
+  // Dados reais da API: aceitar/cancelar só com assinatura on-chain (ainda não integrada).
+  const assinaturaPendente = operacao.origem === "api";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs p-5 flex flex-col justify-between">
@@ -59,7 +62,7 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
             Valor ofertado
           </span>
           <div className="text-xl sm:text-2xl font-bold text-gray-900 font-sans tracking-tight">
-            {formatarMoeda(operacao.valor)}
+            {operacao.valorFormatado ?? formatarMoeda(operacao.valor)}
           </div>
         </div>
 
@@ -114,6 +117,8 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
               variant="destructive"
               size="sm"
               onClick={() => solicitarCancelamentoOferta(operacao)}
+              disabled={assinaturaPendente}
+              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
             >
               Cancelar
             </Button>
@@ -132,6 +137,8 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
               variant="primary"
               size="sm"
               onClick={() => solicitarAceiteOferta(operacao)}
+              disabled={assinaturaPendente}
+              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
             >
               Aceitar
             </Button>

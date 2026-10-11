@@ -4,6 +4,7 @@ import Button from "./ui/Button";
 import { formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Bookmark } from "lucide-react";
+import { MENSAGEM_ASSINATURA_PENDENTE } from "../services/adaptadorOfertas";
 
 export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarSalvar = true }) {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
 
   const isSelecionada = selecionadasComparacao.includes(operacao.id);
   const isOfertada = operacao.status === "Ofertada";
+  // Dados reais da API: aceitar/cancelar só com assinatura on-chain (ainda não integrada).
+  const assinaturaPendente = operacao.origem === "api";
 
   return (
     <tr className="border-b border-gray-100">
@@ -46,7 +49,7 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
         {operacao.contraparte}
       </td>
       <td className="py-3 px-3 text-sm font-bold text-gray-900">
-        {formatarMoeda(operacao.valor)}
+        {operacao.valorFormatado ?? formatarMoeda(operacao.valor)}
       </td>
       <td className="py-3 px-3 text-xs font-mono font-medium text-gray-800">
         {operacao.taxaCdi}
@@ -64,6 +67,8 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
               variant="destructive"
               size="sm"
               onClick={() => solicitarCancelamentoOferta(operacao)}
+              disabled={assinaturaPendente}
+              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
             >
               Cancelar
             </Button>
@@ -82,6 +87,8 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
               variant="primary"
               size="sm"
               onClick={() => solicitarAceiteOferta(operacao)}
+              disabled={assinaturaPendente}
+              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
             >
               Aceitar
             </Button>
