@@ -1,5 +1,5 @@
 import Badge from "./ui/Badge";
-import { Ban, CheckCircle2, Clock3, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, Clock3, Hourglass, XCircle } from "lucide-react";
 
 export default function StatusBadge({ status, size = "md", className = "" }) {
   const map = {
@@ -9,6 +9,7 @@ export default function StatusBadge({ status, size = "md", className = "" }) {
     Liquidada: { variant: "success", label: "Liquidada", dot: true },
     Negada: { variant: "danger", label: "Negada", icon: XCircle },
     Cancelada: { variant: "danger", label: "Cancelada", icon: Ban },
+    Expirada: { variant: "warning", label: "Expirada", icon: Hourglass },
   };
 
   const item = map[status] || { variant: "neutral", label: status, dot: false };

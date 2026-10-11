@@ -13,6 +13,14 @@ export default function Timeline({ status }) {
     );
   }
 
+  if (status === "Expirada") {
+    return (
+      <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 my-3">
+        Oferta expirou sem aceite — o prazo de validade terminou antes da liquidação.
+      </div>
+    );
+  }
+
   const indiceAtual = ETAPAS.indexOf(status);
 
   return (
