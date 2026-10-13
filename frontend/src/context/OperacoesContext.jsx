@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import {
   operacoesIniciais,
   gerarHashFicticio,
@@ -14,6 +14,8 @@ let proximoIdNumero = 42;
 
 export function OperacoesProvider({ children }) {
   const [operacoes, setOperacoes] = useState(operacoesIniciais);
+  // Favoritos ficam fora das operações para valer também para as que vêm da API.
+  const [idsSalvos, setIdsSalvos] = useState(() => operacoesIniciais.filter((o) => o.salva).map((o) => o.id));
   const [instituicaoAtual, setInstituicaoAtual] = useState("Banco A");
   const [perfilContato, setPerfilContato] = useState({ responsavel: "Mesa de Operações", email: "operacoes@bancoa.com.br" });
   const [selecionadasComparacao, setSelecionadasComparacao] = useState(["#001", "#003"]);
@@ -137,10 +139,17 @@ export function OperacoesProvider({ children }) {
 
   // Alternar Salvar / Favoritar
   function alternarSalvar(id) {
-    setOperacoes((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, salva: !o.salva } : o))
+    setIdsSalvos((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   }
+
+  // Marca `salva` em qualquer lista de operações (mock ou API).
+  const comSalvas = useCallback(
+    (lista) => lista.map((o) => ({ ...o, salva: idsSalvos.includes(o.id) })),
+    [idsSalvos]
+  );
+  const operacoesComSalvas = useMemo(() => comSalvas(operacoes), [comSalvas, operacoes]);
 
   // Alternar seleção para comparação de limite
   function alternarSelecaoComparacao(id) {
@@ -152,7 +161,8 @@ export function OperacoesProvider({ children }) {
   return (
     <OperacoesContext.Provider
       value={{
-        operacoes,
+        operacoes: operacoesComSalvas,
+        comSalvas,
         instituicaoAtual,
         setInstituicaoAtual,
         perfilContato,

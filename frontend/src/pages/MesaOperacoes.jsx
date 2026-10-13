@@ -9,6 +9,9 @@ import {
   formatarMoeda,
 } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useOfertasApi } from "../hooks/useOfertasApi";
+import EstadoCarregando from "../components/ui/EstadoCarregando";
+import EstadoErro from "../components/ui/EstadoErro";
 import {
   Search,
   LayoutGrid,
@@ -22,7 +25,7 @@ import {
 
 export default function MesaOperacoes() {
   const {
-    operacoes,
+    comSalvas,
     limiteTotal,
     cdiVigente,
     volume24h,
@@ -33,9 +36,16 @@ export default function MesaOperacoes() {
   const [visualizacao, setVisualizacao] = useState("grid"); // "grid" | "table"
   const [pagina, setPagina] = useState(1);
 
-  const ofertasDisponiveis = useMemo(() =>
-    operacoes.filter((op) => !op.minha && op.status === "Ofertada"),
-  [operacoes]);
+  // Ofertas abertas vindas da API. Sem carteira conectada ainda não dá para
+  // separar as do próprio banco, então todas as abertas aparecem.
+  const {
+    status: statusLista,
+    operacoes: ofertasApi,
+    erro: erroLista,
+    recarregar,
+  } = useOfertasApi({ status: "offered" });
+
+  const ofertasDisponiveis = useMemo(() => comSalvas(ofertasApi), [comSalvas, ofertasApi]);
 
   // A mesa mostra apenas ofertas abertas de outras instituições.
   const operacoesFiltradas = useMemo(() => {
@@ -63,8 +73,8 @@ export default function MesaOperacoes() {
 
   // Propostas selecionadas para cálculo do impacto no limite
   const propostasSelecionadas = useMemo(() => {
-    return operacoes.filter((o) => selecionadasComparacao.includes(o.id));
-  }, [operacoes, selecionadasComparacao]);
+    return ofertasDisponiveis.filter((o) => selecionadasComparacao.includes(o.id));
+  }, [ofertasDisponiveis, selecionadasComparacao]);
 
   const totalValorSelecionado = useMemo(() => {
     return propostasSelecionadas.reduce((acc, curr) => acc + curr.valor, 0);
@@ -222,7 +232,7 @@ export default function MesaOperacoes() {
             {/* Botão Comparar */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 border border-gray-200 text-gray-800">
               <CheckSquare className="w-3.5 h-3.5 text-gray-500" />
-              <span>Comparando ({selecionadasComparacao.length})</span>
+              <span>Comparando ({propostasSelecionadas.length})</span>
             </div>
 
             {/* Alternador Grid / Tabela */}
@@ -256,13 +266,22 @@ export default function MesaOperacoes() {
         </div>
 
         {/* Lista de Propostas (Cards ou Tabela) */}
-        {operacoesFiltradas.length === 0 ? (
+        {statusLista === "carregando" ? (
+          <EstadoCarregando linhas={3} rotulo="Carregando ofertas" />
+        ) : statusLista === "erro" ? (
+          <EstadoErro
+            titulo={erroLista?.tipo === "indisponivel" ? "API indisponível" : "Não foi possível carregar as ofertas"}
+            mensagem="As ofertas da mesa não puderam ser consultadas agora."
+            correlationId={erroLista?.correlationId}
+            onTentarNovamente={recarregar}
+          />
+        ) : operacoesFiltradas.length === 0 ? (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
             <p className="text-sm font-medium text-gray-600">
-              Nenhuma oferta disponível encontrada.
+              {busca.trim() ? "Nenhuma oferta disponível encontrada." : "Nenhuma oferta aberta no momento."}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Tente alterar os termos de busca.
+              {busca.trim() ? "Tente alterar os termos de busca." : "Novas ofertas aparecem aqui assim que forem registradas."}
             </p>
             <Button
               variant="outline"
