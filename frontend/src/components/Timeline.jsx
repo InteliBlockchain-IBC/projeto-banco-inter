@@ -3,10 +3,20 @@ import { Check } from "lucide-react";
 const ETAPAS = ["Ofertada", "Aceita", "Liquidada"];
 
 export default function Timeline({ status }) {
-  if (status === "Cancelada") {
+  if (status === "Cancelada" || status === "Negada") {
     return (
       <div className="text-xs text-rose-600 bg-rose-50 border border-rose-200/80 rounded-lg p-2.5 my-3">
-        Ciclo interrompido — oferta cancelada antes do aceite.
+        {status === "Negada"
+          ? "Oferta negada pela contraparte antes do aceite."
+          : "Ciclo interrompido — oferta cancelada antes do aceite."}
+      </div>
+    );
+  }
+
+  if (status === "Expirada") {
+    return (
+      <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 my-3">
+        Oferta expirou sem aceite — o prazo de validade terminou antes da liquidação.
       </div>
     );
   }
@@ -18,7 +28,7 @@ export default function Timeline({ status }) {
       <div className="flex items-center justify-between relative max-w-sm mx-auto">
         <div className="absolute left-4 right-4 top-3.5 h-0.5 bg-gray-200 -z-0" />
         <div
-          className="absolute left-4 top-3.5 h-0.5 bg-neutral-900 -z-0 transition-all duration-300"
+          className="absolute left-4 top-3.5 h-0.5 bg-inter-orange -z-0 transition-all duration-300"
           style={{
             width:
               indiceAtual === 0 ? "0%" : indiceAtual === 1 ? "50%" : "100%",
@@ -33,7 +43,7 @@ export default function Timeline({ status }) {
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shadow-2xs transition-colors ${
                   feita
-                    ? "bg-neutral-900 text-white"
+                    ? "bg-inter-orange text-white"
                     : "bg-gray-100 text-gray-400 border border-gray-200"
                 }`}
               >

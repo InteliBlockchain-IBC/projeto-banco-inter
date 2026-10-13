@@ -5,11 +5,9 @@ import { formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Bookmark } from "lucide-react";
 
-export default function OfertaCard({ operacao }) {
+export default function OfertaCard({ operacao, mostrarComparacao = true, mostrarSalvar = true }) {
   const navigate = useNavigate();
   const {
-    solicitarAceiteOferta,
-    solicitarCancelamentoOferta,
     alternarSalvar,
     selecionadasComparacao,
     alternarSelecaoComparacao,
@@ -17,9 +15,10 @@ export default function OfertaCard({ operacao }) {
 
   const isSelecionada = selecionadasComparacao.includes(operacao.id);
   const isOfertada = operacao.status === "Ofertada";
+  // Dados reais da API: aceitar/cancelar só com assinatura on-chain (ainda não integrada).
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs hover:border-gray-300 hover:shadow-xs transition-all duration-150 p-5 flex flex-col justify-between">
+    <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs p-5 flex flex-col justify-between">
       {/* Topo do Card */}
       <div>
         <div className="flex items-start justify-between gap-2 mb-3">
@@ -33,7 +32,7 @@ export default function OfertaCard({ operacao }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            {mostrarSalvar && <button
               type="button"
               onClick={() => alternarSalvar(operacao.id)}
               className={`p-1 rounded-md transition-colors cursor-pointer ${
@@ -48,7 +47,7 @@ export default function OfertaCard({ operacao }) {
                   operacao.salva ? "fill-current" : ""
                 }`}
               />
-            </button>
+            </button>}
             <StatusBadge status={operacao.status} size="sm" />
           </div>
         </div>
@@ -59,7 +58,7 @@ export default function OfertaCard({ operacao }) {
             Valor ofertado
           </span>
           <div className="text-xl sm:text-2xl font-bold text-gray-900 font-sans tracking-tight">
-            {formatarMoeda(operacao.valor)}
+            {operacao.valorFormatado ?? formatarMoeda(operacao.valor)}
           </div>
         </div>
 
@@ -80,39 +79,49 @@ export default function OfertaCard({ operacao }) {
         </div>
 
         {/* Impacto no limite & checkbox de simulação */}
-        <div className="mb-4">
+        {operacao.impactoLimite != null && <div className="mb-4">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-gray-500 font-medium">Impacto no limite</span>
             <span className="font-semibold text-gray-900 font-mono">
-              {operacao.impactoLimite || 10}%
+              {operacao.impactoLimite}%
             </span>
           </div>
           <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-neutral-900 h-1.5 rounded-full transition-all"
-              style={{ width: `${Math.min(100, operacao.impactoLimite || 10)}%` }}
+              className="bg-inter-orange h-1.5 rounded-full transition-all"
+              style={{ width: `${Math.min(100, operacao.impactoLimite)}%` }}
             />
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* Rodapé de Ações */}
       <div className="pt-2 flex items-center justify-between gap-2 border-t border-gray-100">
-        <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+        {mostrarComparacao && <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={isSelecionada}
             onChange={() => alternarSelecaoComparacao(operacao.id)}
-            className="w-3.5 h-3.5 rounded border-gray-300 text-neutral-900 focus:ring-black cursor-pointer"
+            className="compare-checkbox"
           />
           <span className="text-[11px]">Comparar</span>
-        </label>
+        </label>}
 
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center gap-2 ${mostrarComparacao ? "" : "ml-auto"}`}>
+          {isOfertada && operacao.minha && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
+            >
+              Cancelar
+            </Button>
+          )}
+
           <Button
-            variant="outline"
+            variant="details"
             size="sm"
-            onClick={() => navigate(`/operacoes/${operacao.id}`)}
+            onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
           >
             Ver detalhes
           </Button>
@@ -121,21 +130,12 @@ export default function OfertaCard({ operacao }) {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => solicitarAceiteOferta(operacao)}
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
             >
               Aceitar
             </Button>
           )}
 
-          {isOfertada && operacao.minha && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => solicitarCancelamentoOferta(operacao)}
-            >
-              Cancelar
-            </Button>
-          )}
         </div>
       </div>
     </div>

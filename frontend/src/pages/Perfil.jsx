@@ -1,178 +1,73 @@
+﻿import { useEffect, useState } from "react";
 import Card from "../components/ui/Card";
-import Badge from "../components/ui/Badge";
-import { formatarMoeda, LIMITE_TOTAL, LIMITE_UTILIZADO_PADRAO, CARTEIRA_CONECTADA } from "../services/mockOperacoes";
-import { useOperacoes } from "../context/OperacoesContext";
-import { Wallet, ShieldCheck, CheckCircle2, ExternalLink } from "lucide-react";
+import Button from "../components/ui/Button";
+import HashTransacao from "../components/HashTransacao";
+import CarteiraControles from "../components/CarteiraControles";
+import EstadoCarregando from "../components/ui/EstadoCarregando";
+import EstadoErro from "../components/ui/EstadoErro";
+import { useCarteira } from "../context/CarteiraContext";
+import { useAmbiente } from "../context/AmbienteContext";
+import { buscarHistoricoLimite } from "../services/api";
+import { formatarCentavos, formatarDataHoraIso } from "../utils/formatadores";
 
 export default function Perfil() {
-  const { instituicaoAtual } = useOperacoes();
+  const { conta, rede, naSepolia } = useCarteira();
+  const { carteiraAtiva, limiteOperador, demonstracao, status, erro, recarregar } = useAmbiente();
+  const [historico, setHistorico] = useState({ status: "carregando", dados: [], erro: null });
+  const [versao, setVersao] = useState(0);
+
+  useEffect(() => {
+    if (!carteiraAtiva) return undefined;
+    const controlador = new AbortController();
+    buscarHistoricoLimite(carteiraAtiva, { signal: controlador.signal })
+      .then((dados) => setHistorico({ status: "ok", dados, erro: null }))
+      .catch((falha) => { if (!controlador.signal.aborted) setHistorico({ status: "erro", dados: [], erro: falha }); });
+    return () => controlador.abort();
+  }, [carteiraAtiva, versao]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="mx-auto max-w-4xl space-y-6 pb-12">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-          Perfil da Instituição
-        </h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Identidade institucional, chaves criptográficas autorizadas e limites regulatórios.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Perfil da instituição</h1>
+        <p className="mt-1 text-sm text-gray-500">Identidade e limite associados à carteira selecionada.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Coluna Esquerda: Dados da Instituição (2 cols) */}
-        <div className="md:col-span-2 space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold text-lg">
-                  {instituicaoAtual.slice(0, 1)}
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-gray-900">
-                    {instituicaoAtual} S.A.
-                  </h2>
-                  <span className="text-xs text-gray-500">
-                    Instituição Financeira Autorizada pelo Banco Central
-                  </span>
-                </div>
-              </div>
-              <Badge variant="success" size="sm" dot>
-                Ativo
-              </Badge>
+      {demonstracao && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Banco de demonstração selecionado no cabeçalho. Os endereços e eventos desta instância são sintéticos.</p>}
+      {!demonstracao && <Card className="space-y-3 p-5">
+        <h2 className="font-semibold">Carteira MetaMask</h2>
+        <p className="break-all font-mono text-xs">{conta || "Nenhuma carteira conectada"}</p>
+        <p className="text-xs text-gray-500">{conta ? `Rede: ${rede}${naSepolia ? "" : " — selecione Sepolia para assinar"}` : "Conecte a carteira para consultar seu perfil."}</p>
+        <CarteiraControles />
+      </Card>}
+      {status === "carregando" && <EstadoCarregando linhas={3} rotulo="Carregando perfil" />}
+      {status === "erro" && <EstadoErro titulo="Não foi possível carregar o perfil" mensagem={erro?.message} onTentarNovamente={recarregar} />}
+      {status === "ok" && carteiraAtiva && <>
+        <Card className="space-y-4 p-6">
+          <h2 className="text-lg font-semibold text-gray-900">{limiteOperador?.institution?.name ?? "Instituição não cadastrada"}</h2>
+          <div className="text-xs text-gray-600">Carteira: <HashTransacao valor={carteiraAtiva} tipo="endereco" /></div>
+          {limiteOperador ? <>
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs text-gray-500">Limite disponível para tomada</p>
+              <strong className="text-2xl text-gray-900">{formatarCentavos(limiteOperador.availableLimitCents)}</strong>
             </div>
-
-            <div className="divide-y divide-gray-100 text-sm mt-2">
-              <div className="py-3 flex justify-between">
-                <span className="text-xs text-gray-500">CNPJ</span>
-                <span className="font-mono text-xs font-semibold text-gray-900">
-                  00.123.456/0001-99
-                </span>
-              </div>
-              <div className="py-3 flex justify-between">
-                <span className="text-xs text-gray-500">Código COMPE / ISPB</span>
-                <span className="font-mono text-xs font-semibold text-gray-900">
-                  077 • 00416968
-                </span>
-              </div>
-              <div className="py-3 flex justify-between">
-                <span className="text-xs text-gray-500">Segmento Bacen</span>
-                <span className="text-xs font-semibold text-gray-900">
-                  S1 / Conglomerado Prudencial
-                </span>
-              </div>
-              <div className="py-3 flex justify-between">
-                <span className="text-xs text-gray-500">Mesa Autorizada</span>
-                <span className="text-xs font-semibold text-gray-900">
-                  Crédito Interfinanceiro (CDI / Over)
-                </span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Carteira e Infraestrutura Web3 */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
-              <div className="flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-gray-700" />
-                <h2 className="text-sm font-bold text-gray-900">
-                  Carteira Blockchain & Chaves
-                </h2>
-              </div>
-              <Badge variant="neutral" size="sm">
-                Rede: Sepolia
-              </Badge>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div>
-                <span className="text-gray-500 block mb-1">
-                  Endereço público da carteira operadora
-                </span>
-                <div className="flex items-center justify-between bg-gray-50 px-3.5 py-2.5 rounded-lg border border-gray-200 font-mono text-gray-800">
-                  <span>{CARTEIRA_CONECTADA}</span>
-                  <a
-                    href="https://sepolia.etherscan.io"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray-500 hover:text-black flex items-center gap-1"
-                  >
-                    <span>Etherscan</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <span className="text-gray-400 block mb-1">Status do Nó</span>
-                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Sincronizado
-                  </span>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <span className="text-gray-400 block mb-1">Tipo de Assinatura</span>
-                  <span className="font-semibold text-gray-800">
-                    ECDSA secp256k1
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Coluna Direita: Limites de Crédito */}
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-4">
-              Limites Operacionais
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
-                  Limite Total Concedido
-                </span>
-                <div className="text-xl font-bold text-gray-900 mt-1">
-                  {formatarMoeda(LIMITE_TOTAL)}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
-                  Volume Utilizado na Grade
-                </span>
-                <div className="text-lg font-bold text-gray-700 mt-1">
-                  {formatarMoeda(LIMITE_UTILIZADO_PADRAO)}
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                  <div className="bg-neutral-900 h-1.5 w-1/4 rounded-full" />
-                </div>
-                <span className="text-[11px] text-gray-400 mt-1 block">
-                  25% do teto operacional
-                </span>
-              </div>
-
-              <div className="pt-3 border-t border-gray-100">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
-                  Disponível para Tomada
-                </span>
-                <div className="text-xl font-bold text-emerald-700 mt-1 font-mono">
-                  {formatarMoeda(LIMITE_TOTAL - LIMITE_UTILIZADO_PADRAO)}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <div className="flex items-start gap-2 text-[11px] text-gray-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>
-                  Revisão de risco periódica aprovada pelo comitê de crédito e tesouraria.
-                </span>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
+            <p className="text-xs text-gray-500">Observado no bloco {limiteOperador.observedBlock?.toLocaleString("pt-BR") ?? "—"} em {formatarDataHoraIso(limiteOperador.observedAt)}.</p>
+          </> : <p className="text-sm text-amber-700">A API não encontrou um limite cadastrado para esta carteira.</p>}
+        </Card>
+        <Card className="p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-gray-900">Histórico do limite</h2>
+            <Button size="sm" variant="outline" onClick={() => setVersao((v) => v + 1)}>Atualizar</Button>
+          </div>
+          {historico.status === "carregando" && <EstadoCarregando linhas={2} rotulo="Carregando histórico do limite" />}
+          {historico.status === "erro" && <EstadoErro titulo="Histórico indisponível" mensagem={historico.erro?.message} onTentarNovamente={() => setVersao((v) => v + 1)} />}
+          {historico.status === "ok" && historico.dados.length === 0 && <p className="text-sm text-gray-500">Nenhuma mudança de limite registrada.</p>}
+          {historico.status === "ok" && <ul className="divide-y divide-gray-100">{historico.dados.map((item, indice) => <li key={`${item.txHash}-${indice}`} className="space-y-1 py-3 text-xs">
+            <p className="font-semibold text-gray-800">{item.changeKind === "settlement" ? "Liquidação" : "Atualização administrativa"} · {formatarCentavos(item.newLimitCents)}</p>
+            <p className="text-gray-500">{formatarDataHoraIso(item.blockTimestamp)}</p>
+            {item.txHash && <HashTransacao valor={item.txHash} />}
+          </li>)}</ul>}
+        </Card>
+      </>}
     </div>
   );
 }

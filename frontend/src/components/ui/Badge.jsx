@@ -14,7 +14,8 @@ export default function Badge({
   const variantStyles = {
     neutral: "bg-gray-100 text-gray-700 border border-gray-200/80",
     success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    danger: "bg-rose-50 text-rose-700 border border-rose-200",
+    accepted: "bg-emerald-50 text-emerald-700 border border-transparent",
+    danger: "bg-rose-50 text-rose-700 border border-transparent",
     warning: "bg-amber-50 text-amber-700 border border-amber-200",
     info: "bg-blue-50 text-blue-700 border border-blue-200",
     dark: "bg-neutral-900 text-white border border-transparent",

@@ -37,7 +37,7 @@ export default function Input({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed ${
+          className={`w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-inter-orange focus:outline-none focus:ring-1 focus:ring-inter-orange disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed ${
             prefix ? "pl-9" : ""
           } ${suffix ? "pr-10" : ""} ${
             error ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500" : ""

@@ -68,7 +68,7 @@ export default function ProcessandoOperacaoModal({
           <div className="flex items-center justify-between relative">
             <div className="absolute left-6 right-6 top-4 h-0.5 bg-gray-200 -z-0" />
             <div
-              className="absolute left-6 top-4 h-0.5 bg-neutral-900 -z-0 transition-all duration-500"
+              className="absolute left-6 top-4 h-0.5 bg-inter-orange -z-0 transition-all duration-500"
               style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "100%" }}
             />
 
@@ -89,7 +89,7 @@ export default function ProcessandoOperacaoModal({
                   step >= 2
                     ? isFinalizado
                       ? "bg-emerald-500 text-white"
-                      : "bg-neutral-900 text-white"
+                      : "bg-inter-orange text-white"
                     : "bg-gray-200 text-gray-500"
                 }`}
               >

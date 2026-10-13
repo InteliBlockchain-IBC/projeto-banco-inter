@@ -3,7 +3,7 @@ export default function Card({ children, className = "", onClick, hoverable = fa
     <div
       onClick={onClick}
       className={`bg-white rounded-xl border border-gray-200/90 shadow-xs p-5 ${
-        hoverable ? "hover:border-gray-300 hover:shadow-md transition-all duration-150 cursor-pointer" : ""
+        hoverable || onClick ? "transition-all duration-150 hover:border-inter-orange hover:shadow-md cursor-pointer" : ""
       } ${className}`}
       {...props}
     >

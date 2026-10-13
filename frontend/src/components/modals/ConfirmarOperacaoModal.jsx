@@ -1,8 +1,12 @@
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
-import { formatarMoeda, CARTEIRA_CONECTADA } from "../../services/mockOperacoes";
-import { ShieldCheck, Wallet } from "lucide-react";
+import { formatarMoeda } from "../../services/mockOperacoes";
+import { Wallet } from "lucide-react";
+import { useCarteira } from "../../context/CarteiraContext";
+import { abreviarEndereco } from "../../services/metamask";
+import CarteiraControles from "../CarteiraControles";
+import CarteiraAviso from "../CarteiraAviso";
 
 export default function ConfirmarOperacaoModal({
   operacao,
@@ -10,6 +14,7 @@ export default function ConfirmarOperacaoModal({
   onClose,
   onConfirmar,
 }) {
+  const { conta, conectada, rede, naSepolia } = useCarteira();
   if (!operacao) return null;
 
   return (
@@ -17,7 +22,7 @@ export default function ConfirmarOperacaoModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Confirmar operação"
-      subtitle="Confirme os termos e assine digitalmente a tomada de recursos"
+      subtitle="Confira os termos da tomada de recursos"
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
@@ -51,23 +56,22 @@ export default function ConfirmarOperacaoModal({
             <div className="flex items-center gap-2">
               <Wallet className="w-4 h-4 text-gray-600" />
               <span className="text-xs font-semibold text-gray-800">
-                Carteira conectada
+                Carteira MetaMask
               </span>
             </div>
-            <Badge variant="success" size="sm" dot>
-              Conectada
+            <Badge variant={conectada ? "success" : "neutral"} size="sm" dot>
+              {conectada ? "Conectada" : "Não conectada"}
             </Badge>
           </div>
           <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-            <span className="font-mono text-xs text-gray-600">
-              {CARTEIRA_CONECTADA}
+            <span className="font-mono text-xs text-gray-600" title={conta || undefined}>
+              {abreviarEndereco(conta)}
             </span>
-            <span className="text-[11px] text-gray-400 font-medium">Rede Sepolia</span>
+            <span className="text-[11px] text-gray-400 font-medium">{conectada ? rede : "Sem conexão"}</span>
           </div>
-          <p className="text-[11px] text-gray-500 flex items-center gap-1.5 pt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            Transação com contrato inteligente e verificação de limite.
-          </p>
+          {(!conectada || !naSepolia) && <CarteiraControles />}
+          <CarteiraAviso />
+          <p className="text-[11px] text-gray-500 pt-1">Este aceite é uma simulação. Nenhuma assinatura ou transação será solicitada à MetaMask.</p>
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
@@ -75,7 +79,7 @@ export default function ConfirmarOperacaoModal({
             Cancelar
           </Button>
           <Button variant="primary" onClick={() => onConfirmar(operacao)}>
-            Assinar e enviar
+            Simular aceite
           </Button>
         </div>
       </div>

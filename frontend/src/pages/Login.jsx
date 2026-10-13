@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
-import { ArrowRight, Layers, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import InterLogo from "../components/InterLogo";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,63 +23,46 @@ export default function Login() {
     <div className="min-h-screen bg-[#F4F5F7] flex flex-col justify-between p-4 sm:p-8">
       {/* Topo: Logo Inter */}
       <div className="max-w-6xl w-full mx-auto">
-        <div className="flex items-baseline">
-          <span className="text-2xl font-black tracking-tighter text-neutral-900 font-sans">
-            inter
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A00] ml-0.5 mb-1" />
-        </div>
+        <InterLogo />
       </div>
 
-      {/* Conteúdo Central: Card Duplo */}
-      <div className="max-w-4xl w-full mx-auto my-auto py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* Lado Esquerdo: Apresentação da Mesa */}
-          <div className="bg-white/80 rounded-2xl border border-gray-200/90 p-8 flex flex-col justify-between shadow-xs">
+      <div className="w-full max-w-4xl mx-auto my-auto py-8">
+        <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+          <div className="flex flex-col justify-between p-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 mb-4">
-                <Layers className="w-3.5 h-3.5" />
-                Mesa de Operações
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight leading-snug">
+              <h1 className="text-2xl font-bold leading-snug tracking-tight text-gray-900 sm:text-3xl">
                 Conectando instituições para um mercado financeiro mais eficiente.
               </h1>
-              <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+              <p className="mt-3 text-sm leading-relaxed text-gray-500">
                 Liquidez interfinanceira segura, automatizada por contratos inteligentes e liquidação garantida via blockchain.
               </p>
             </div>
 
-            {/* Ilustração / Cards Estilizados */}
-            <div className="my-8 relative h-36 flex items-center justify-center">
-              {/* Card de Fundo */}
-              <div className="absolute w-52 h-28 rounded-xl bg-gray-100 border border-gray-200 -rotate-6 transform -translate-x-4 shadow-xs flex flex-col justify-between p-3.5">
-                <div className="w-8 h-3 rounded bg-gray-200" />
-                <div className="space-y-1.5">
-                  <div className="w-24 h-2 rounded bg-gray-200" />
-                  <div className="w-16 h-2 rounded bg-gray-200" />
+            <div className="relative my-8 flex h-52 items-center justify-center overflow-hidden" aria-hidden="true">
+              <div className="absolute h-36 w-56 -translate-x-9 translate-y-3 -rotate-12 rounded-2xl border border-gray-300 bg-gray-200 shadow-lg sm:w-60">
+                <span className="absolute left-5 top-5 text-lg font-bold tracking-tight text-gray-500">inter</span>
+                <span className="absolute bottom-6 left-5 h-5 w-8 rounded bg-gray-300" />
+              </div>
+              <div className="absolute flex h-40 w-60 translate-x-7 -translate-y-1 rotate-12 flex-col justify-between rounded-2xl border border-orange-300 bg-[linear-gradient(135deg,#ffb14f_0%,#ff850b_52%,#e76500_100%)] p-5 shadow-xl sm:w-64">
+                <div className="flex items-start justify-between text-white">
+                  <span className="text-2xl font-bold tracking-tight">inter</span>
+                  <span className="text-[10px] font-semibold tracking-widest">CRÉDITO</span>
+                </div>
+                <div className="flex items-end justify-between">
+                  <span className="grid h-7 w-9 grid-cols-2 overflow-hidden rounded-md border border-gray-500 bg-gray-300 shadow-inner">
+                    <span className="border-b border-r border-gray-500" /><span className="border-b border-gray-500" />
+                    <span className="border-r border-gray-500" /><span />
+                  </span>
+                  <span className="relative h-9 w-14">
+                    <span className="absolute left-0 top-0 h-9 w-9 rounded-full border border-white/80 bg-red-500/90" />
+                    <span className="absolute right-0 top-0 h-9 w-9 rounded-full border border-white/80 bg-amber-400/85" />
+                  </span>
                 </div>
               </div>
-              {/* Card da Frente */}
-              <div className="absolute w-52 h-28 rounded-xl bg-gray-200/80 border border-gray-300 rotate-3 transform translate-x-3 shadow-sm flex flex-col justify-between p-3.5">
-                <div className="flex justify-between items-center">
-                  <div className="w-7 h-7 rounded-full bg-gray-300" />
-                  <span className="text-[10px] font-mono text-gray-500 font-bold">101,5% CDI</span>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="w-28 h-2.5 rounded bg-gray-300" />
-                  <div className="w-20 h-2 rounded bg-gray-300" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Ambiente institucional autorizado • Sepolia Testnet</span>
             </div>
           </div>
 
-          {/* Lado Direito: Formulário de Acesso */}
-          <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-gray-200/90 p-8 shadow-xs">
             <div>
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-gray-900 tracking-tight">
@@ -133,12 +117,6 @@ export default function Login() {
               </form>
             </div>
 
-            {/* Nota de rodapé da PoC */}
-            <div className="mt-8 p-3 rounded-lg bg-gray-50 border border-gray-200/80 text-center">
-              <span className="text-[11px] text-gray-500">
-                Use credenciais simuladas para acessar a PoC
-              </span>
-            </div>
           </div>
         </div>
       </div>
