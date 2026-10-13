@@ -53,3 +53,11 @@ carteira participante na MetaMask. O frontend pede a intenção à API, confere
 conta, rede e código do contrato, envia a transação pela MetaMask, registra o
 hash e acompanha o recibo. O listener do backend deve estar configurado para
 indexar a oferta; as rotas de intenção só estão disponíveis em `development`.
+
+Para publicar uma oferta real, a interface consulta o saldo e a autorização de
+BRLt da carteira ofertante na Sepolia. Se a autorização for menor que o valor da
+oferta, solicita `approve` na MetaMask e aguarda o recibo antes de pedir a
+assinatura da oferta. Os dois hashes aparecem separadamente. No detalhe de uma
+oferta aberta, o ofertante também pode autorizar BRLt para uma oferta já criada.
+O admin do contrato precisa cadastrar as carteiras e fornecer BRLt de teste;
+essas ações não são feitas pelo frontend.

@@ -17,8 +17,43 @@ function esperar(ms) {
 }
 
 export function mensagemErroTransacao(erro) {
-  if (Number(erro?.code) === 4001) return "Assinatura recusada na carteira.";
-  return erro?.detail || erro?.shortMessage || erro?.message || "Não foi possível concluir a operação.";
+  const codigo = Number(erro?.data?.originalError?.code ?? erro?.data?.code ?? erro?.code);
+  if (codigo === 4001 || erro?.code === "ACTION_REJECTED") {
+    return "A solicitação foi recusada na MetaMask. Confira a carteira e tente novamente se quiser continuar.";
+  }
+  if (codigo === 4100) {
+    return "A MetaMask não autorizou esta conta. Conecte a carteira novamente e tente de novo.";
+  }
+  if (codigo === -32002) {
+    return "Já há uma solicitação pendente. Abra a MetaMask para confirmar ou cancelar antes de tentar novamente.";
+  }
+  if (codigo === 4900 || codigo === 4901) {
+    return "A MetaMask perdeu a conexão com a Sepolia. Verifique a rede e tente novamente.";
+  }
+
+  const descricao = [erro?.shortMessage, erro?.reason, erro?.data?.message,
+    erro?.data?.originalError?.message, erro?.message].filter(Boolean).join(" ");
+  if (/insufficient funds|not enough (?:eth|funds) for gas/i.test(descricao)) {
+    return "A carteira não tem ETH de teste suficiente para pagar a taxa da transação na Sepolia.";
+  }
+  if (/allowance|insufficient (?:token|brlt)|transfer amount exceeds balance/i.test(descricao)) {
+    return "O contrato recusou a operação por saldo ou permissão de BRLt insuficiente. Confira a carteira antes de tentar novamente.";
+  }
+  if (/execution reverted|revert(?:ed)?|CALL_EXCEPTION/i.test(descricao)) {
+    return "O contrato recusou a transação. Confira o limite, o estado da oferta e os requisitos da carteira antes de tentar novamente.";
+  }
+  if (/timeout|timed out|network error|disconnected|failed to fetch/i.test(descricao)) {
+    return erro?.hash
+      ? "Não foi possível consultar a Sepolia. Verifique a conexão e consulte o hash antes de tentar enviar outra transação."
+      : "Não foi possível consultar a Sepolia. Verifique a conexão com a MetaMask e tente novamente.";
+  }
+
+  if (erro?.detail) return erro.detail;
+  // Erros escritos pelo próprio aplicativo já descrevem uma ação para o operador.
+  if (/^(Conecte|Troque|A conta conectada|Somente|O contrato|A intenção|Transação enviada|A transação falhou|Saldo de BRLt|A aprovação|Não foi possível consultar)/.test(erro?.message ?? "")) {
+    return erro.message;
+  }
+  return "Não foi possível concluir a transação. Confira a MetaMask e tente novamente.";
 }
 
 async function verificarCarteira(carteira, provider) {
@@ -58,10 +93,15 @@ async function enviarIntencao({ intencao, carteira, provider, aoAtualizar, argum
   }
 
   for (let tentativa = 0; tentativa < TENTATIVAS; tentativa += 1) {
-    const recibo = await provider.request({ method: "eth_getTransactionReceipt", params: [hash] });
+    let recibo;
+    try {
+      recibo = await provider.request({ method: "eth_getTransactionReceipt", params: [hash] });
+    } catch (erro) {
+      throw Object.assign(erro, { hash });
+    }
     if (recibo) {
       if (recibo.status !== "0x1") {
-        throw Object.assign(new Error("A transação falhou na Sepolia."), { hash });
+        throw Object.assign(new Error("A transação falhou na Sepolia. Consulte o hash para ver os detalhes e confira os requisitos da operação antes de tentar novamente."), { hash });
       }
       const atual = await buscarIntencao(intencao.id).catch(() => null);
       aoAtualizar?.({ fase: "confirmada", hash, intencaoId: intencao.id, sincronizando: atual?.status !== "confirmed" });
@@ -69,6 +109,7 @@ async function enviarIntencao({ intencao, carteira, provider, aoAtualizar, argum
     }
     await esperar(PAUSA_MS);
   }
+  aoAtualizar?.({ fase: "pendente", hash, intencaoId: intencao.id });
   return { hash, intencaoId: intencao.id, pendente: true };
 }
 

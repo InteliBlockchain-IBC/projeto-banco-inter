@@ -22,6 +22,7 @@ import { useOperacoes } from "../context/OperacoesContext";
 import { useCarteira } from "../context/CarteiraContext";
 import { useAmbiente } from "../context/AmbienteContext";
 import CarteiraControles from "../components/CarteiraControles";
+import AutorizacaoBrlt from "../components/AutorizacaoBrlt";
 import { INTERVALO_ATUALIZACAO_MS, useOperacaoApi } from "../hooks/useOperacaoApi";
 import { executarAcaoOferta, mensagemErroTransacao } from "../services/transacoes";
 import { buscarEventosOferta, executarAcaoDemonstracao } from "../services/api";
@@ -385,6 +386,8 @@ export default function DetalheOperacaoApi({ id }) {
         <div className="space-y-4">
           <CardLimite operacao={operacao} limite={limite} />
 
+          {!demonstracao && aberta && minha && naSepolia && <AutorizacaoBrlt valorCentavos={operacao.valorCentavos} />}
+
           {(aberta || transacao.fase === "confirmada" || transacao.hash || transacao.erro) && (
             <Card className="space-y-3 p-4 text-xs text-gray-600">
               <strong className="block text-sm text-gray-900">{demonstracao ? "Operação de demonstração" : "Assinatura da operação"}</strong>
@@ -403,6 +406,7 @@ export default function DetalheOperacaoApi({ id }) {
               )}
               {processando && <p role="status">{transacao.fase === "assinando" ? "Aguardando assinatura na MetaMask..." : transacao.fase === "confirmando" ? "Transação enviada. Aguardando confirmação na Sepolia..." : "Preparando operação..."}</p>}
               {transacao.fase === "confirmada" && <p role="status" className="text-emerald-700">{demonstracao ? "Operação registrada no backend de demonstração." : `Transação confirmada na Sepolia. ${transacao.sincronizando ? "Aguardando indexação pelo backend." : "Dados atualizados."}`}</p>}
+              {transacao.fase === "pendente" && <p role="status" className="text-amber-800">Transação enviada, ainda sem confirmação. Consulte o hash antes de tentar novamente.</p>}
               {transacao.erro && <p role="alert" className="text-rose-700">{transacao.erro}</p>}
               {transacao.hash && <div>Hash da transação: <HashTransacao valor={transacao.hash} /></div>}
             </Card>

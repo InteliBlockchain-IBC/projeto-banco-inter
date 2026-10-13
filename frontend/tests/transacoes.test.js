@@ -1,6 +1,26 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { executarAcaoOferta, executarCriacaoOferta } from "../src/services/transacoes.js";
+import { executarAcaoOferta, executarCriacaoOferta, mensagemErroTransacao } from "../src/services/transacoes.js";
+
+test("falhas da carteira e do contrato recebem orientação compreensível", () => {
+  const casos = [
+    [{ code: 4001 }, /recusada na MetaMask/],
+    [{ data: { originalError: { code: -32002 } } }, /solicitação pendente/],
+    [{ code: 4100 }, /Conecte a carteira novamente/],
+    [{ code: 4900 }, /perdeu a conexão/],
+    [{ message: "insufficient funds for gas * price + value" }, /ETH de teste suficiente/],
+    [{ data: { message: "ERC20: insufficient allowance" } }, /permissão de BRLt insuficiente/],
+    [{ shortMessage: "execution reverted" }, /contrato recusou/],
+    [{ message: "network error" }, /Verifique a conexão com a MetaMask/],
+    [{ message: "network error", hash: `0x${"a".repeat(64)}` }, /consulte o hash/],
+    [{ message: "Internal JSON-RPC error: -32603" }, /Confira a MetaMask/],
+  ];
+  for (const [erro, esperado] of casos) {
+    assert.match(mensagemErroTransacao(erro), esperado);
+  }
+  assert.equal(mensagemErroTransacao({ detail: "Limite insuficiente para esta oferta." }), "Limite insuficiente para esta oferta.");
+  assert.equal(mensagemErroTransacao(new Error("Conecte sua carteira MetaMask.")), "Conecte sua carteira MetaMask.");
+});
 
 const carteira = "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2";
 const operacao = {
