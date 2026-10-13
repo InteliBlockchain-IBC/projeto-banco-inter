@@ -34,3 +34,22 @@ publicado, `VITE_API_URL` aponta para a API (exige CORS no backend). Nenhuma das
 segredo.
 
 Testes das funções de dados (sem dependências extras): `npm test`.
+
+### Operações e ambiente
+
+O login é demonstrativo. Mesa, detalhe, histórico, minhas ofertas, instituição e
+limites no perfil leem a API. As ofertas e o histórico são atualizados
+periodicamente. Favoritos e notificações da sessão são estados locais.
+
+O Docker com PostgreSQL pode continuar servindo o **seed sintético**. O frontend
+identifica esse deployment pelo endereço, mostra o aviso de demonstração e
+permite escolher uma carteira fictícia no cabeçalho. Criação, aceite e
+cancelamento usam `/api/mock/offers`; as alterações são gravadas no PostgreSQL
+e refletidas nas telas. Os hashes desse fluxo são sintéticos e não abrem o
+explorer da Sepolia. Nenhuma assinatura é pedida nesse ambiente.
+
+Quando o backend servir um contrato real implantado na Sepolia, conecte uma
+carteira participante na MetaMask. O frontend pede a intenção à API, confere
+conta, rede e código do contrato, envia a transação pela MetaMask, registra o
+hash e acompanha o recibo. O listener do backend deve estar configurado para
+indexar a oferta; as rotas de intenção só estão disponíveis em `development`.

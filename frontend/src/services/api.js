@@ -34,11 +34,17 @@ async function lerJson(resposta) {
   }
 }
 
-export async function requisitarApi(caminho, { signal, fetchImpl = globalThis.fetch } = {}) {
+export async function requisitarApi(caminho, { signal, fetchImpl = globalThis.fetch, method = "GET", body, carteira } = {}) {
   let resposta;
   try {
     resposta = await fetchImpl(`${urlBase()}${caminho}`, {
-      headers: { Accept: "application/json" },
+      method,
+      headers: {
+        Accept: "application/json",
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(carteira ? { "X-Wallet-Address": carteira } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       signal,
     });
   } catch (erro) {
@@ -52,7 +58,7 @@ export async function requisitarApi(caminho, { signal, fetchImpl = globalThis.fe
     throw new ErroApi({
       tipo: tipoPorStatus(resposta.status),
       status: resposta.status,
-      detalhe: corpo?.detail ?? "",
+      detalhe: corpo?.detail ?? corpo?.title ?? "",
       correlationId: corpo?.correlationId ?? null,
     });
   }
@@ -83,13 +89,64 @@ export async function buscarLimiteCredito(carteira, opcoes) {
   return data;
 }
 
+export async function buscarHistoricoLimite(carteira, opcoes) {
+  const { data } = await requisitarApi(`/api/credit-limits/${encodeURIComponent(carteira)}/history`, opcoes);
+  return data;
+}
+
+export async function listarLimitesCredito({ excluirCarteira } = {}, opcoes) {
+  const params = new URLSearchParams({ registered: "true" });
+  if (excluirCarteira) params.set("excludeWallet", excluirCarteira);
+  const { data } = await requisitarApi(`/api/credit-limits?${params}`, opcoes);
+  return data;
+}
+
+export async function buscarDeployment(opcoes) {
+  return requisitarApi("/api/deployment", opcoes);
+}
+
+export async function criarIntencaoOferta(id, acao, carteira, opcoes) {
+  if (!["accept", "cancel", "reject"].includes(acao)) throw new Error("Ação inválida.");
+  return requisitarApi(`/api/offers/${encodeURIComponent(id)}/${acao}`, {
+    ...opcoes, method: "POST", carteira,
+  });
+}
+
+export async function criarIntencaoNovaOferta(dados, carteira, opcoes) {
+  return requisitarApi("/api/offers", { ...opcoes, method: "POST", carteira, body: dados });
+}
+
+export async function criarOfertaDemonstracao(dados, opcoes) {
+  const { data } = await requisitarApi("/api/mock/offers", { ...opcoes, method: "POST", body: dados });
+  return data;
+}
+
+export async function executarAcaoDemonstracao(id, acao, opcoes) {
+  if (!["accept", "cancel", "reject"].includes(acao)) throw new Error("Ação inválida.");
+  const { data } = await requisitarApi(`/api/mock/offers/${encodeURIComponent(id)}/${acao}`, { ...opcoes, method: "POST" });
+  return data;
+}
+
+export async function informarHashIntencao(id, hash, carteira, opcoes) {
+  return requisitarApi(`/api/transaction-requests/${encodeURIComponent(id)}/submission`, {
+    ...opcoes, method: "POST", carteira, body: { txHash: hash },
+  });
+}
+
+export async function buscarIntencao(id, opcoes) {
+  const { data } = await requisitarApi(`/api/transaction-requests/${encodeURIComponent(id)}`, opcoes);
+  return data;
+}
+
 // Percorre todas as páginas até meta.total.
-export async function listarOfertas({ status } = {}, opcoes) {
+export async function listarOfertas({ status, wallet, role } = {}, opcoes) {
   const ofertas = [];
   let offset = 0;
   for (;;) {
     const params = new URLSearchParams({ limit: String(TAMANHO_PAGINA), offset: String(offset) });
     if (status) params.set("status", status);
+    if (wallet) params.set("wallet", wallet);
+    if (role) params.set("role", role);
     const { data, meta } = await requisitarApi(`/api/offers?${params}`, opcoes);
     ofertas.push(...data);
     offset += data.length;

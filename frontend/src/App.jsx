@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { OperacoesProvider } from "./context/OperacoesContext";
 import { CarteiraProvider } from "./context/CarteiraContext";
+import { AmbienteProvider } from "./context/AmbienteContext";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import MesaOperacoes from "./pages/MesaOperacoes";
@@ -13,6 +14,7 @@ import "./styles/global.css";
 export default function App() {
   return (
     <CarteiraProvider>
+      <AmbienteProvider>
       <OperacoesProvider>
         <BrowserRouter>
           <Routes>
@@ -33,6 +35,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </OperacoesProvider>
+      </AmbienteProvider>
     </CarteiraProvider>
   );
 }
