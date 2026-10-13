@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -18,8 +19,13 @@ import Card from "../components/ui/Card";
 import EstadoCarregando from "../components/ui/EstadoCarregando";
 import EstadoErro from "../components/ui/EstadoErro";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useCarteira } from "../context/CarteiraContext";
+import { useAmbiente } from "../context/AmbienteContext";
+import CarteiraControles from "../components/CarteiraControles";
+import AutorizacaoBrlt from "../components/AutorizacaoBrlt";
 import { INTERVALO_ATUALIZACAO_MS, useOperacaoApi } from "../hooks/useOperacaoApi";
-import { MENSAGEM_ASSINATURA_PENDENTE } from "../services/adaptadorOfertas";
+import { executarAcaoOferta, mensagemErroTransacao } from "../services/transacoes";
+import { buscarEventosOferta, executarAcaoDemonstracao } from "../services/api";
 import {
   SEPOLIA_CHAIN_ID,
   formatarCentavos,
@@ -63,17 +69,18 @@ function Aviso({ tom, icone: Icone, titulo, children }) {
 
 // Cancelada, Negada e Expirada já têm a explicação na Timeline.
 function AvisoStatus({ operacao }) {
+  const { demonstracao } = useAmbiente();
   switch (operacao.status) {
     case "Ofertada":
       return (
         <Aviso tom="info" icone={Clock3} titulo="Aguardando aceite da contraparte">
           A tela consulta a API a cada {INTERVALO_ATUALIZACAO_MS / 1000} s e mostra a liquidação assim que ela
-          for confirmada on-chain.
+          for {demonstracao ? "registrada no backend" : "confirmada on-chain"}.
         </Aviso>
       );
     case "Liquidada":
       return (
-        <Aviso tom="sucesso" icone={CheckCircle2} titulo="Liquidação confirmada on-chain">
+        <Aviso tom="sucesso" icone={CheckCircle2} titulo={demonstracao ? "Liquidação de demonstração registrada" : "Liquidação confirmada on-chain"}>
           Aceite e liquidação (DvP) ocorreram na mesma transação, no bloco{" "}
           {operacao.liquidacao.bloco.toLocaleString("pt-BR")}, em{" "}
           {formatarDataHoraIso(operacao.liquidacao.liquidadaEm)}.
@@ -85,11 +92,12 @@ function AvisoStatus({ operacao }) {
 }
 
 function TransacoesOnchain({ operacao, transacoes, eventosIndisponiveis }) {
+  const { demonstracao } = useAmbiente();
   return (
     <Card className="p-6">
-      <h2 className="text-base font-bold text-gray-900">Transações on-chain</h2>
+      <h2 className="text-base font-bold text-gray-900">{demonstracao ? "Eventos de demonstração" : "Transações on-chain"}</h2>
       <p className="mt-1 text-xs text-gray-500">
-        Cada etapa registrada no contrato, com link para o explorer da Sepolia.
+        {demonstracao ? "Etapas registradas no backend com hashes sintéticos." : "Cada etapa registrada no contrato, com link para o explorer da Sepolia."}
       </p>
       {eventosIndisponiveis && (
         <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
@@ -121,6 +129,7 @@ function TransacoesOnchain({ operacao, transacoes, eventosIndisponiveis }) {
 }
 
 function CardLimite({ operacao, limite }) {
+  const { demonstracao } = useAmbiente();
   const { dados, erro } = limite;
   const titulo = `Limite disponível — ${operacao.tomador.rotulo}`;
 
@@ -163,17 +172,17 @@ function CardLimite({ operacao, limite }) {
       {!dados.isRegistered ? (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-800">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>Tomador não está registrado no contrato. O aceite será rejeitado.</span>
+          <span>Tomador não está registrado {demonstracao ? "no backend" : "no contrato"}. O aceite será rejeitado.</span>
         </div>
       ) : aberta && excede ? (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-800">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>Valor acima do limite disponível do tomador. O contrato rejeitará o aceite.</span>
+          <span>Valor acima do limite disponível do tomador. O aceite será rejeitado.</span>
         </div>
       ) : aberta ? (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-gray-100 bg-gray-50 p-3 text-[11px] text-gray-500">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-          <span>Limite suficiente para esta oferta. A validação final é feita pelo contrato no aceite.</span>
+          <span>Limite suficiente para esta oferta. A validação final é feita {demonstracao ? "pelo backend" : "pelo contrato"} no aceite.</span>
         </div>
       ) : null}
     </Card>
@@ -183,7 +192,11 @@ function CardLimite({ operacao, limite }) {
 export default function DetalheOperacaoApi({ id }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { comSalvas, alternarSalvar } = useOperacoes();
+  const { comSalvas, alternarSalvar, notificar } = useOperacoes();
+  const { conta, naSepolia, getProvider } = useCarteira();
+  const { demonstracao, carteiraAtiva, recarregar: recarregarAmbiente } = useAmbiente();
+  const [transacao, setTransacao] = useState({ fase: "idle", hash: null, erro: null });
+  const [confirmarAcao, setConfirmarAcao] = useState(null);
   const {
     status,
     operacao: operacaoApi,
@@ -195,6 +208,35 @@ export default function DetalheOperacaoApi({ id }) {
     atualizadoEm,
     recarregar,
   } = useOperacaoApi(id);
+
+  async function confirmarTransacao(acao, operacao) {
+    setConfirmarAcao(null);
+    setTransacao({ fase: "preparando", hash: null, erro: null });
+    try {
+      if (demonstracao) {
+        const resultado = await executarAcaoDemonstracao(operacao.rawId, acao);
+        const eventos = await buscarEventosOferta(operacao.rawId).catch(() => []);
+        const hash = resultado.operation?.txHash ?? eventos.at(-1)?.txHash ?? null;
+        setTransacao({ fase: "confirmada", hash, erro: null, demonstracao: true });
+        notificar(`Oferta ${operacao.id} ${acao === "accept" ? "liquidada" : "cancelada"} na demonstração.`, "sucesso", operacao.rawId);
+        recarregar();
+        recarregarAmbiente();
+        window.dispatchEvent(new Event("inter:ofertas-atualizadas"));
+        return;
+      }
+      const resultado = await executarAcaoOferta({
+        operacao, acao, carteira: conta, provider: getProvider(),
+        aoAtualizar: (atualizacao) => setTransacao((anterior) => ({ ...anterior, ...atualizacao, erro: null })),
+      });
+      if (!resultado.pendente) recarregar();
+      notificar(`Transação de ${operacao.id} enviada à Sepolia.`, "info", operacao.rawId);
+    } catch (erroTransacao) {
+      setTransacao((anterior) => ({
+        ...anterior, fase: "erro", hash: erroTransacao.hash ?? anterior.hash,
+        erro: mensagemErroTransacao(erroTransacao),
+      }));
+    }
+  }
 
   // Volta para a tela de origem; acesso direto pela URL volta para a mesa.
   const voltar = () => (location.key !== "default" ? navigate(-1) : navigate("/mesa"));
@@ -214,7 +256,7 @@ export default function DetalheOperacaoApi({ id }) {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Detalhe da Operação</h1>
         <p className="mt-1 text-xs text-gray-500 sm:text-sm">
-          Dados da oferta, estado atual e rastreabilidade on-chain na Sepolia.
+          Dados da oferta, estado atual e rastreabilidade {demonstracao ? "no backend de demonstração" : "on-chain na Sepolia"}.
         </p>
       </div>
     </>
@@ -263,6 +305,10 @@ export default function DetalheOperacaoApi({ id }) {
 
   const [operacao] = comSalvas([operacaoApi]);
   const aberta = operacao.status === "Ofertada";
+  const minha = carteiraAtiva?.toLowerCase() === operacao.ofertante.carteira?.toLowerCase();
+  const tomadora = carteiraAtiva?.toLowerCase() === operacao.tomador.carteira?.toLowerCase();
+  const processando = ["preparando", "assinando", "confirmando"].includes(transacao.fase);
+  const assinaturaBloqueada = processando || Boolean(transacao.hash) || (!demonstracao && !naSepolia);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-12">
@@ -340,6 +386,32 @@ export default function DetalheOperacaoApi({ id }) {
         <div className="space-y-4">
           <CardLimite operacao={operacao} limite={limite} />
 
+          {!demonstracao && aberta && minha && naSepolia && <AutorizacaoBrlt valorCentavos={operacao.valorCentavos} />}
+
+          {(aberta || transacao.fase === "confirmada" || transacao.hash || transacao.erro) && (
+            <Card className="space-y-3 p-4 text-xs text-gray-600">
+              <strong className="block text-sm text-gray-900">{demonstracao ? "Operação de demonstração" : "Assinatura da operação"}</strong>
+              {demonstracao ? <p>O backend gravará a transição no PostgreSQL com hash sintético. Nenhuma assinatura será solicitada.</p> : !conta ? <><p>Conecte a carteira participante para assinar.</p><CarteiraControles /></> :
+                !naSepolia ? <><p>Selecione a rede Sepolia na carteira.</p><CarteiraControles /></> :
+                !minha && !tomadora ? <p>Esta carteira não é ofertante nem tomadora desta oferta.</p> :
+                <p>Carteira: {conta}. A MetaMask solicitará a assinatura e o envio da transação.</p>}
+              {confirmarAcao && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <p>Confirma {confirmarAcao === "accept" ? "o aceite e a liquidação" : "o cancelamento"} de {operacao.id}?</p>
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" onClick={() => confirmarTransacao(confirmarAcao, operacao)}>{demonstracao ? "Confirmar simulação" : "Confirmar na carteira"}</Button>
+                    <Button size="sm" variant="outline" onClick={() => setConfirmarAcao(null)}>Voltar</Button>
+                  </div>
+                </div>
+              )}
+              {processando && <p role="status">{transacao.fase === "assinando" ? "Aguardando assinatura na MetaMask..." : transacao.fase === "confirmando" ? "Transação enviada. Aguardando confirmação na Sepolia..." : "Preparando operação..."}</p>}
+              {transacao.fase === "confirmada" && <p role="status" className="text-emerald-700">{demonstracao ? "Operação registrada no backend de demonstração." : `Transação confirmada na Sepolia. ${transacao.sincronizando ? "Aguardando indexação pelo backend." : "Dados atualizados."}`}</p>}
+              {transacao.fase === "pendente" && <p role="status" className="text-amber-800">Transação enviada, ainda sem confirmação. Consulte o hash antes de tentar novamente.</p>}
+              {transacao.erro && <p role="alert" className="text-rose-700">{transacao.erro}</p>}
+              {transacao.hash && <div>Hash da transação: <HashTransacao valor={transacao.hash} /></div>}
+            </Card>
+          )}
+
           <div className={`grid gap-3 ${aberta || operacao.status === "Liquidada" ? "grid-cols-[44px_minmax(0,1fr)]" : "grid-cols-1"}`}>
             <button
               type="button"
@@ -351,23 +423,15 @@ export default function DetalheOperacaoApi({ id }) {
             >
               <Bookmark className={`h-4 w-4 transition-[fill,transform] duration-200 ${operacao.salva ? "scale-110 fill-current" : ""}`} aria-hidden="true" />
             </button>
-            {aberta && (
-              <Button variant="primary" className="h-11 w-full whitespace-nowrap" disabled aria-describedby="aviso-assinatura">
-                Aceitar oferta
-              </Button>
-            )}
+            {aberta && tomadora && <Button variant="primary" className="h-11 w-full whitespace-nowrap" disabled={assinaturaBloqueada} onClick={() => setConfirmarAcao("accept")}>Aceitar oferta</Button>}
+            {aberta && minha && <Button variant="destructive" className="h-11 w-full whitespace-nowrap" disabled={assinaturaBloqueada} onClick={() => setConfirmarAcao("cancel")}>Cancelar oferta</Button>}
             {operacao.status === "Liquidada" && (
               <Button variant="outline" className="h-11 w-full" onClick={() => navigate("/historico")}>
                 Ver no histórico
               </Button>
             )}
           </div>
-          {aberta && (
-            <p id="aviso-assinatura" className="flex items-start gap-2 text-[11px] leading-relaxed text-gray-500">
-              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <span>{MENSAGEM_ASSINATURA_PENDENTE} Aceite e cancelamento exigem a assinatura do operador.</span>
-            </p>
-          )}
+          {aberta && <p className="flex items-start gap-2 text-[11px] leading-relaxed text-gray-500"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span>{demonstracao ? "Selecione no cabeçalho o banco de demonstração correspondente. A ação não movimenta ativos." : "A assinatura exige um contrato real na Sepolia e uma carteira participante."}</span></p>}
 
           <div className="flex items-center justify-between gap-2 text-[11px] text-gray-500">
             <span aria-live="polite">Atualizado às {formatarHora(atualizadoEm)}</span>

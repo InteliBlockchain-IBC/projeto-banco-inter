@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import {
   ErroApi,
   buscarOferta,
+  criarIntencaoOferta,
+  criarOfertaDemonstracao,
+  executarAcaoDemonstracao,
   listarOfertas,
   requisitarApi,
 } from "../src/services/api.js";
@@ -102,4 +105,38 @@ test("listarOfertas para em página vazia", async () => {
   const { fetchImpl, chamadas } = fetchFalso(resposta(200, { data: [], meta: { source: "mock", total: 5 } }));
   assert.deepEqual(await listarOfertas({}, { fetchImpl }), []);
   assert.equal(chamadas.length, 1);
+});
+
+test("intenção de aceite envia carteira sem Content-Type quando não há body", async () => {
+  const carteira = "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2";
+  const { fetchImpl, chamadas } = fetchFalso(resposta(202, { data: { id: "pedido" } }));
+  await criarIntencaoOferta(ofertaAberta.id, "accept", carteira, { fetchImpl });
+  assert.equal(chamadas[0].init.method, "POST");
+  assert.equal(chamadas[0].init.headers["X-Wallet-Address"], carteira);
+  assert.equal(chamadas[0].init.headers["Content-Type"], undefined);
+  assert.equal(chamadas[0].init.body, undefined);
+});
+
+test("consulta minhas ofertas filtra carteira e papel no backend", async () => {
+  const carteira = "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2";
+  const { fetchImpl, chamadas } = fetchFalso(resposta(200, { data: [], meta: { total: 0 } }));
+  await listarOfertas({ wallet: carteira, role: "lender" }, { fetchImpl });
+  assert.match(chamadas[0].url, /wallet=0x/);
+  assert.match(chamadas[0].url, /role=lender/);
+});
+
+test("ações de demonstração usam os endpoints persistidos e retornam hash do backend", async () => {
+  const nova = { lenderWallet: "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", borrowerWallet: "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2", amountCents: "10000", rateCdiBps: 10500, termDays: 1, validitySeconds: 3600 };
+  const { fetchImpl, chamadas } = fetchFalso(
+    resposta(201, { data: { offer: { id: ofertaAberta.id, createTxHash: "0xhash" }, operation: null } }),
+    resposta(200, { data: { offer: { id: ofertaAberta.id, status: "settled" }, operation: { txHash: "0xhash2" } } }),
+  );
+  const criada = await criarOfertaDemonstracao(nova, { fetchImpl });
+  const aceita = await executarAcaoDemonstracao(ofertaAberta.id, "accept", { fetchImpl });
+  assert.equal(criada.offer.createTxHash, "0xhash");
+  assert.equal(aceita.operation.txHash, "0xhash2");
+  assert.equal(chamadas[0].url, "/api/mock/offers");
+  assert.deepEqual(JSON.parse(chamadas[0].init.body), nova);
+  assert.equal(chamadas[1].url, `/api/mock/offers/${ofertaAberta.id}/accept`);
+  assert.equal(chamadas[1].init.headers["Content-Type"], undefined);
 });

@@ -10,6 +10,8 @@ import {
 } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { useOfertasApi } from "../hooks/useOfertasApi";
+import { useAmbiente } from "../context/AmbienteContext";
+import { formatarCentavos } from "../utils/formatadores";
 import EstadoCarregando from "../components/ui/EstadoCarregando";
 import EstadoErro from "../components/ui/EstadoErro";
 import {
@@ -26,11 +28,10 @@ import {
 export default function MesaOperacoes() {
   const {
     comSalvas,
-    limiteTotal,
-    cdiVigente,
-    volume24h,
     selecionadasComparacao,
   } = useOperacoes();
+  const { carteiraAtiva: conta, limiteOperador, erro: erroAmbiente } = useAmbiente();
+  const limiteTotal = conta && limiteOperador ? Number(limiteOperador.availableLimitCents) / 100 : 0;
 
   const [busca, setBusca] = useState("");
   const [visualizacao, setVisualizacao] = useState("grid"); // "grid" | "table"
@@ -45,7 +46,10 @@ export default function MesaOperacoes() {
     recarregar,
   } = useOfertasApi({ status: "offered" });
 
-  const ofertasDisponiveis = useMemo(() => comSalvas(ofertasApi), [comSalvas, ofertasApi]);
+  const ofertasDisponiveis = useMemo(() => comSalvas(ofertasApi).filter((op) =>
+    !conta || op.ofertante.carteira?.toLowerCase() !== conta.toLowerCase()), [comSalvas, ofertasApi, conta]);
+  const volume24h = useMemo(() => ofertasDisponiveis
+    .reduce((total, op) => total + op.valor, 0), [ofertasDisponiveis]);
 
   // A mesa mostra apenas ofertas abertas de outras instituições.
   const operacoesFiltradas = useMemo(() => {
@@ -81,9 +85,9 @@ export default function MesaOperacoes() {
   }, [propostasSelecionadas]);
 
   const totalPercentualComprometido = useMemo(() => {
-    return Math.min(100, Math.round((totalValorSelecionado / limiteTotal) * 100));
+    return limiteTotal ? Math.min(100, Math.round((totalValorSelecionado / limiteTotal) * 100)) : 0;
   }, [totalValorSelecionado, limiteTotal]);
-  const escalaGrafico = Math.max(10, Math.ceil(Math.max(...propostasSelecionadas.map((prop) => prop.valor / limiteTotal * 100), 0) / 10) * 10);
+  const escalaGrafico = Math.max(10, Math.ceil(Math.max(...propostasSelecionadas.map((prop) => limiteTotal ? prop.valor / limiteTotal * 100 : 0), 0) / 10) * 10);
 
   return (
     <div className="space-y-8 pb-12">
@@ -105,18 +109,18 @@ export default function MesaOperacoes() {
       <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard
           label="Limite disponível"
-          value={formatarMoeda(limiteTotal)}
-          subvalue="Banco A • R$ 125M comprometido"
+          value={conta && limiteOperador ? formatarCentavos(limiteOperador.availableLimitCents) : "—"}
+          subvalue={!conta ? "Conecte a carteira" : erroAmbiente ? "Limite indisponível" : limiteOperador?.institution?.name ?? "Consultando limite"}
           icon={TrendingUp}
         />
         <StatCard
           label="Taxa CDI vigente"
-          value={`${cdiVigente.toFixed(2).replace(".", ",")}% a.a.`}
-          subvalue="Referência B3 atualizada"
+          value="—"
+          subvalue="Referência não fornecida pela API"
           icon={Percent}
         />
         <StatCard
-          label="Volume ofertado 24h"
+          label="Volume de ofertas abertas"
           value={formatarMoeda(volume24h)}
           subvalue="Total de ordens abertas"
           icon={Activity}
@@ -159,7 +163,7 @@ export default function MesaOperacoes() {
           <div className="mt-auto min-w-0 pt-5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
               <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-inter-orange" />Impacto de cada oferta</span>
-              <span>Percentual do limite total</span>
+              <span>Percentual do limite disponível</span>
             </div>
             <div className="overflow-x-auto">
               <div className="flex min-w-max items-start gap-2 pt-5">
@@ -178,7 +182,7 @@ export default function MesaOperacoes() {
                   </div>
                   <div className="relative flex items-end gap-3">
                     {propostasSelecionadas.map((prop) => {
-                      const percentual = prop.valor / limiteTotal * 100;
+                      const percentual = limiteTotal ? prop.valor / limiteTotal * 100 : 0;
                       return (
                         <div key={prop.id} className="w-24 shrink-0 text-center sm:w-28">
                           <div className="flex h-40 items-end justify-center">

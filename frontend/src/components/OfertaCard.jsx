@@ -4,13 +4,10 @@ import Button from "./ui/Button";
 import { formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Bookmark } from "lucide-react";
-import { MENSAGEM_ASSINATURA_PENDENTE } from "../services/adaptadorOfertas";
 
 export default function OfertaCard({ operacao, mostrarComparacao = true, mostrarSalvar = true }) {
   const navigate = useNavigate();
   const {
-    solicitarAceiteOferta,
-    solicitarCancelamentoOferta,
     alternarSalvar,
     selecionadasComparacao,
     alternarSelecaoComparacao,
@@ -19,7 +16,6 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
   const isSelecionada = selecionadasComparacao.includes(operacao.id);
   const isOfertada = operacao.status === "Ofertada";
   // Dados reais da API: aceitar/cancelar só com assinatura on-chain (ainda não integrada).
-  const assinaturaPendente = operacao.origem === "api";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs p-5 flex flex-col justify-between">
@@ -83,20 +79,20 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
         </div>
 
         {/* Impacto no limite & checkbox de simulação */}
-        <div className="mb-4">
+        {operacao.impactoLimite != null && <div className="mb-4">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-gray-500 font-medium">Impacto no limite</span>
             <span className="font-semibold text-gray-900 font-mono">
-              {operacao.impactoLimite || 10}%
+              {operacao.impactoLimite}%
             </span>
           </div>
           <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-inter-orange h-1.5 rounded-full transition-all"
-              style={{ width: `${Math.min(100, operacao.impactoLimite || 10)}%` }}
+              style={{ width: `${Math.min(100, operacao.impactoLimite)}%` }}
             />
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* Rodapé de Ações */}
@@ -116,9 +112,7 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => solicitarCancelamentoOferta(operacao)}
-              disabled={assinaturaPendente}
-              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
             >
               Cancelar
             </Button>
@@ -136,9 +130,7 @@ export default function OfertaCard({ operacao, mostrarComparacao = true, mostrar
             <Button
               variant="primary"
               size="sm"
-              onClick={() => solicitarAceiteOferta(operacao)}
-              disabled={assinaturaPendente}
-              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
             >
               Aceitar
             </Button>

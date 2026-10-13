@@ -9,10 +9,6 @@ import {
   formatarTaxaCdi,
 } from "../utils/formatadores.js";
 
-// Ações que exigem assinatura na carteira ainda não estão ligadas ao contrato.
-export const MENSAGEM_ASSINATURA_PENDENTE =
-  "Assinatura na carteira será habilitada na integração com o contrato.";
-
 // Aceite e liquidação ocorrem na mesma transação (DvP): "Aceita" nunca é persistido.
 export const STATUS_API_PARA_UI = {
   offered: "Ofertada",

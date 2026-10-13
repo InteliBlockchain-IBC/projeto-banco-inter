@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { CheckCheck, Copy, ExternalLink } from "lucide-react";
 import { abreviarHash, urlExplorerEndereco, urlExplorerTx } from "../utils/formatadores";
+import { useAmbiente } from "../context/AmbienteContext";
 
 // Hash abreviado (6 + 4) com link para o explorer da Sepolia e botão de copiar.
 // tipo="endereco" usa a rota /address do explorer.
 export default function HashTransacao({ valor, tipo = "tx", className = "" }) {
+  const { demonstracao } = useAmbiente();
   const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export default function HashTransacao({ valor, tipo = "tx", className = "" }) {
 
   if (!valor) return null;
 
-  const url = tipo === "endereco" ? urlExplorerEndereco(valor) : urlExplorerTx(valor);
+  const url = demonstracao ? null : tipo === "endereco" ? urlExplorerEndereco(valor) : urlExplorerTx(valor);
   const descricao = tipo === "endereco" ? "endereço" : "transação";
 
   async function copiar() {

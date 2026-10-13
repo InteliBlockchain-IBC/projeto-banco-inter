@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, CheckCircle2, Clock3, LayoutGrid, List, Plus, Search } from "lucide-react";
+import { useAmbiente } from "../context/AmbienteContext";
 import { useOperacoes } from "../context/OperacoesContext";
-import { STATUS_LIST } from "../services/mockOperacoes";
+import { useOfertasApi } from "../hooks/useOfertasApi";
+import CarteiraControles from "../components/CarteiraControles";
+import EstadoCarregando from "../components/ui/EstadoCarregando";
+import EstadoErro from "../components/ui/EstadoErro";
 import { resumirOfertas } from "../services/estatisticasOfertas";
 import GraficoMinhasOfertas from "../components/GraficoMinhasOfertas";
 import OfertaCard from "../components/OfertaCard";
@@ -9,8 +13,12 @@ import OfertaRow from "../components/OfertaRow";
 import Button from "../components/ui/Button";
 import Paginacao, { ITENS_POR_PAGINA } from "../components/ui/Paginacao";
 
+const STATUS_LIST = ["Todas", "Ofertadas", "Liquidadas", "Negadas", "Canceladas", "Expiradas"];
+
 export default function MinhasOfertas() {
-  const { operacoes, setModalNovaOfertaAberto } = useOperacoes();
+  const { carteiraAtiva: conta, demonstracao } = useAmbiente();
+  const { setModalNovaOfertaAberto } = useOperacoes();
+  const { operacoes, status, erro, recarregar } = useOfertasApi({ wallet: conta, role: "lender", enabled: Boolean(conta) });
   const [filtroStatus, setFiltroStatus] = useState("Todas");
   const [busca, setBusca] = useState("");
   const [dataInicial, setDataInicial] = useState("");
@@ -38,8 +46,9 @@ export default function MinhasOfertas() {
   }, [datasAbertas]);
 
   const minhasOfertas = useMemo(() => operacoes
-    .filter((operacao) => operacao.minha)
-    .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm)), [operacoes]);
+    .filter((operacao) => operacao.ofertante.carteira?.toLowerCase() === conta?.toLowerCase())
+    .map((operacao) => ({ ...operacao, minha: true }))
+    .sort((a, b) => new Date(b.criadaEm) - new Date(a.criadaEm)), [operacoes, conta]);
   const dadosGrafico = useMemo(() => resumirOfertas(minhasOfertas, periodo), [minhasOfertas, periodo]);
   const decididas = dadosGrafico.totais.aceitas + dadosGrafico.totais.negadas;
   const taxaAceite = decididas ? Math.round(dadosGrafico.totais.aceitas / decididas * 100) : 0;
@@ -79,11 +88,14 @@ export default function MinhasOfertas() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Minhas ofertas</h1>
           <p className="mt-1 text-xs text-gray-500 sm:text-sm">Acompanhe o aceite e gerencie as ofertas da sua instituição.</p>
         </div>
-        <Button variant="primary" onClick={() => setModalNovaOfertaAberto(true)} className="self-start sm:self-auto">
-          <Plus className="h-4 w-4" />
-          Criar oferta
-        </Button>
+        <Button variant="primary" onClick={() => setModalNovaOfertaAberto(true)} className="self-start sm:self-auto"><Plus className="h-4 w-4" />Criar oferta</Button>
       </div>
+
+      {!conta && <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm"><p className="mb-3">Conecte sua carteira para consultar as ofertas associadas a ela.</p><CarteiraControles /></div>}
+      {demonstracao && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Exibindo as ofertas da carteira de demonstração selecionada no cabeçalho.</p>}
+      {conta && status === "carregando" && <EstadoCarregando linhas={4} rotulo="Carregando minhas ofertas" />}
+      {conta && status === "erro" && <EstadoErro titulo="Não foi possível carregar suas ofertas" mensagem={erro?.message} correlationId={erro?.correlationId} onTentarNovamente={recarregar} />}
+      {conta && status === "ok" && <>
 
       <div className="grid items-stretch gap-4 lg:grid-cols-2">
         <GraficoMinhasOfertas dados={dadosGrafico} periodo={periodo} onPeriodoChange={setPeriodo} />
@@ -239,6 +251,7 @@ export default function MinhasOfertas() {
         )}
         <Paginacao pagina={paginaAtual} totalItens={ofertasFiltradas.length} onPaginaChange={setPagina} />
       </section>
+      </>}
     </div>
   );
 }

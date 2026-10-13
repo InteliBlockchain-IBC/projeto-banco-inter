@@ -1,12 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useAmbiente } from "../context/AmbienteContext";
+import { abreviarEndereco } from "../services/metamask";
 import { ChevronDown, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
 import InterLogo from "./InterLogo";
 import CarteiraControles from "./CarteiraControles";
 
 export default function Header() {
-  const { instituicaoAtual, operacoes, notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
+  const { notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
+  const { demonstracao, limites, limiteOperador, setCarteiraDemo } = useAmbiente();
+  const instituicaoAtual = limiteOperador?.institution?.name ?? "Instituição não identificada";
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [modoEscuro, setModoEscuro] = useState(() => window.localStorage.getItem("inter-theme") === "dark");
@@ -27,10 +31,7 @@ export default function Header() {
     { to: "/historico", label: "Histórico", curta: "Histórico" },
   ];
   const idDetalhe = pathname.startsWith("/operacoes/") ? pathname.split("/").at(-1) : null;
-  const ofertaDetalhada = operacoes.find((oferta) => oferta.rawId === idDetalhe || oferta.id === idDetalhe);
-  const abaAtiva = idDetalhe
-    ? ofertaDetalhada?.minha ? 1 : 0
-    : abas.findIndex(({ to }) => to === pathname);
+  const abaAtiva = idDetalhe ? 0 : abas.findIndex(({ to }) => to === pathname);
   const naoLidas = notificacoes.filter((item) => !item.lida).length;
 
   useLayoutEffect(() => {
@@ -157,8 +158,14 @@ export default function Header() {
               className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs transition-colors hover:bg-gray-50 ${pathname === "/perfil" ? "font-semibold text-inter-orange" : "text-gray-700"}`}
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
-              <span>Editar perfil</span>
+              <span>Perfil</span>
             </button>
+            {demonstracao && <div className="border-t border-gray-100 px-3 py-2 text-[11px] font-semibold text-gray-500">Operar como (demonstração)</div>}
+            {demonstracao && limites.map((item) => (
+              <button key={item.wallet} type="button" onClick={() => { setCarteiraDemo(item.wallet); setDropdownAberto(false); }} className={`w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-gray-50 ${limiteOperador?.wallet === item.wallet ? "font-semibold text-inter-orange" : "text-gray-700"}`}>
+                {item.institution?.name ?? "Instituição"} <span className="font-mono text-[10px]">{abreviarEndereco(item.wallet)}</span>
+              </button>
+            ))}
             <button
               type="button"
               role="switch"

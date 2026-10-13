@@ -4,13 +4,10 @@ import Button from "./ui/Button";
 import { formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
 import { Bookmark } from "lucide-react";
-import { MENSAGEM_ASSINATURA_PENDENTE } from "../services/adaptadorOfertas";
 
 export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarSalvar = true }) {
   const navigate = useNavigate();
   const {
-    solicitarAceiteOferta,
-    solicitarCancelamentoOferta,
     alternarSalvar,
     selecionadasComparacao,
     alternarSelecaoComparacao,
@@ -19,7 +16,6 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
   const isSelecionada = selecionadasComparacao.includes(operacao.id);
   const isOfertada = operacao.status === "Ofertada";
   // Dados reais da API: aceitar/cancelar só com assinatura on-chain (ainda não integrada).
-  const assinaturaPendente = operacao.origem === "api";
 
   return (
     <tr className="border-b border-gray-100">
@@ -66,9 +62,7 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => solicitarCancelamentoOferta(operacao)}
-              disabled={assinaturaPendente}
-              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
             >
               Cancelar
             </Button>
@@ -86,9 +80,7 @@ export default function OfertaRow({ operacao, mostrarComparacao = true, mostrarS
             <Button
               variant="primary"
               size="sm"
-              onClick={() => solicitarAceiteOferta(operacao)}
-              disabled={assinaturaPendente}
-              title={assinaturaPendente ? MENSAGEM_ASSINATURA_PENDENTE : undefined}
+              onClick={() => navigate(`/operacoes/${operacao.rawId}`)}
             >
               Aceitar
             </Button>
