@@ -21,7 +21,7 @@ export default function App() {
             {/* Tela de Login */}
             <Route path="/" element={<Login />} />
 
-            {/* Rotas Autenticadas com Shell de Navegação */}
+            {/* Páginas internas com navegação compartilhada; o login ainda é demonstrativo. */}
             <Route element={<Layout />}>
               <Route path="/mesa" element={<MesaOperacoes />} />
               <Route path="/minhas-ofertas" element={<MinhasOfertas />} />

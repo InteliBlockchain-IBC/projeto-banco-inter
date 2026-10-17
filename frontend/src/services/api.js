@@ -61,6 +61,7 @@ export async function requisitarApi(caminho, { signal, fetchImpl = globalThis.fe
     });
   }
 
+  // Mesmo um HTTP 2xx precisa seguir o envelope da API para não alimentar telas com dados incompletos.
   if (!corpo || !("data" in corpo)) {
     throw new ErroApi({
       tipo: "inesperado",

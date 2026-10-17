@@ -13,6 +13,7 @@ import { aprovarBrlt, consultarBrlt } from "../../services/brlt";
 import { formatarCentavos } from "../../utils/formatadores";
 
 function centavosDeReais(valor) {
+  // Converte texto monetário sem passar por ponto flutuante, preservando os centavos.
   const normalizado = valor.trim().replace(",", ".");
   if (!/^\d+(?:\.\d{1,2})?$/.test(normalizado)) return null;
   const [reais, centavos = ""] = normalizado.split(".");
@@ -74,6 +75,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
     let ofertaIniciada = false;
     try {
       const dados = { borrowerWallet: tomador, amountCents, rateCdiBps, termDays, validitySeconds: 3600 };
+      // A demo registra a oferta pela API; na Sepolia é preciso aprovar BRLt antes de assinar.
       if (demonstracao) {
         const resultado = await criarOfertaDemonstracao({ ...dados, lenderWallet: carteiraAtiva });
         setNovaOfertaId(resultado.offer.id);

@@ -29,8 +29,8 @@ function mensagemErro(erro) {
   }
 }
 
-// Estado compartilhado entre as telas. O provider também fica disponível para
-// a futura integração com os contratos, sem armazenar chaves ou pedir assinatura.
+// Mantém conta e rede sincronizadas com a extensão. A assinatura das operações
+// usa o provider diretamente, sem armazenar chaves no frontend.
 export function criarConexaoMetaMask(browser = window) {
   let estado = { conta: null, chainId: null, disponivel: false, pendente: null, erro: null };
   let provider = null;

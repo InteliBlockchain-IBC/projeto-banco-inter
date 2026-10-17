@@ -213,6 +213,7 @@ export default function DetalheOperacaoApi({ id }) {
     setConfirmarAcao(null);
     setTransacao({ fase: "preparando", hash: null, erro: null });
     try {
+      // A demo recebe um hash sintético da API; o fluxo real envia pela carteira.
       if (demonstracao) {
         const resultado = await executarAcaoDemonstracao(operacao.rawId, acao);
         const eventos = await buscarEventosOferta(operacao.rawId).catch(() => []);

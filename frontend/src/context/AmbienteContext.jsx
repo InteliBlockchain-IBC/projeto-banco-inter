@@ -32,6 +32,7 @@ export function AmbienteProvider({ children }) {
     try { sessionStorage.setItem("inter-carteira-demo", wallet); } catch { /* Seleção disponível nesta sessão. */ }
   }
 
+  // O endereço sintético vem do backend e determina se as ações usam a API de demonstração.
   const valor = useMemo(() => {
     const demonstracao = estado.deployment?.data?.contractAddress?.toLowerCase() === CONTRATO_SINTETICO;
     const carteiraAtiva = demonstracao

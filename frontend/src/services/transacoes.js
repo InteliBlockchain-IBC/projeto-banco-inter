@@ -81,6 +81,7 @@ async function verificarContrato(provider, endereco, deploymentRecebido) {
 }
 
 async function enviarIntencao({ intencao, carteira, provider, aoAtualizar, argumentos }) {
+  // O backend prepara a intenção; a MetaMask envia a chamada e devolve o hash.
   const chamada = intencao.contractCall;
   aoAtualizar?.({ fase: "assinando", hash: null, intencaoId: intencao.id });
   const data = encodeFunctionData({ abi: ABI, functionName: chamada.functionName, args: argumentos });
@@ -92,6 +93,7 @@ async function enviarIntencao({ intencao, carteira, provider, aoAtualizar, argum
     throw Object.assign(new Error(`Transação enviada, mas o backend não registrou o hash: ${mensagemErroTransacao(erro)}`), { hash });
   }
 
+  // O recibo confirma a rede; a atualização da oferta ainda depende do indexador do backend.
   for (let tentativa = 0; tentativa < TENTATIVAS; tentativa += 1) {
     let recibo;
     try {
