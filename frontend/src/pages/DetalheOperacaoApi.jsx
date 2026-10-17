@@ -120,7 +120,7 @@ function TransacoesOnchain({ operacao, transacoes, eventosIndisponiveis }) {
         {operacao.status === "Ofertada" && (
           <li className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm font-semibold text-gray-400">Aceite e liquidação (DvP)</span>
-            <span className="text-xs text-gray-500">Aguardando liquidação on-chain</span>
+            <span className="text-xs text-gray-500">{demonstracao ? "Aguardando aceite na demonstração" : "Aguardando liquidação on-chain"}</span>
           </li>
         )}
       </ol>
@@ -213,6 +213,7 @@ export default function DetalheOperacaoApi({ id }) {
     setConfirmarAcao(null);
     setTransacao({ fase: "preparando", hash: null, erro: null });
     try {
+      // A demo recebe um hash sintético da API; o fluxo real envia pela carteira.
       if (demonstracao) {
         const resultado = await executarAcaoDemonstracao(operacao.rawId, acao);
         const eventos = await buscarEventosOferta(operacao.rawId).catch(() => []);
@@ -362,15 +363,15 @@ export default function DetalheOperacaoApi({ id }) {
                   </Linha>
                 </>
               )}
-              <Linha rotulo="ID da oferta no contrato">
+              <Linha rotulo={demonstracao ? "ID da oferta simulada" : "ID da oferta no contrato"}>
                 <span className="font-mono">{operacao.idOnchain}</span>
               </Linha>
-              <Linha rotulo="Contrato">
+              <Linha rotulo={demonstracao ? "Contrato sintético" : "Contrato"}>
                 <HashTransacao valor={operacao.contrato} tipo="endereco" />
               </Linha>
-              <Linha rotulo="Rede de liquidação">
+              <Linha rotulo={demonstracao ? "Ambiente" : "Rede de liquidação"}>
                 <span className="font-mono text-xs text-gray-700">
-                  Ethereum Sepolia Testnet (chainId {SEPOLIA_CHAIN_ID})
+                  {demonstracao ? "Simulação local, sem transação na Sepolia" : `Ethereum Sepolia Testnet (chainId ${SEPOLIA_CHAIN_ID})`}
                 </span>
               </Linha>
             </dl>
@@ -391,7 +392,7 @@ export default function DetalheOperacaoApi({ id }) {
           {(aberta || transacao.fase === "confirmada" || transacao.hash || transacao.erro) && (
             <Card className="space-y-3 p-4 text-xs text-gray-600">
               <strong className="block text-sm text-gray-900">{demonstracao ? "Operação de demonstração" : "Assinatura da operação"}</strong>
-              {demonstracao ? <p>O backend gravará a transição no PostgreSQL com hash sintético. Nenhuma assinatura será solicitada.</p> : !conta ? <><p>Conecte a carteira participante para assinar.</p><CarteiraControles /></> :
+              {demonstracao ? <p>O backend registrará a transição com hash sintético. Nenhuma assinatura será solicitada.</p> : !conta ? <><p>Conecte a carteira participante para assinar.</p><CarteiraControles /></> :
                 !naSepolia ? <><p>Selecione a rede Sepolia na carteira.</p><CarteiraControles /></> :
                 !minha && !tomadora ? <p>Esta carteira não é ofertante nem tomadora desta oferta.</p> :
                 <p>Carteira: {conta}. A MetaMask solicitará a assinatura e o envio da transação.</p>}

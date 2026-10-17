@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useOperacoes } from "../context/OperacoesContext";
 import { useAmbiente } from "../context/AmbienteContext";
+import { useCarteira } from "../context/CarteiraContext";
 import { abreviarEndereco } from "../services/metamask";
 import { ChevronDown, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
 import InterLogo from "./InterLogo";
@@ -9,8 +10,10 @@ import CarteiraControles from "./CarteiraControles";
 
 export default function Header() {
   const { notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
-  const { demonstracao, limites, limiteOperador, setCarteiraDemo } = useAmbiente();
-  const instituicaoAtual = limiteOperador?.institution?.name ?? "Instituição não identificada";
+  const { demonstracao, limites, limiteOperador, status, setCarteiraDemo } = useAmbiente();
+  const { conta } = useCarteira();
+  const instituicaoAtual = limiteOperador?.institution?.name
+    ?? (!demonstracao && status === "ok" && conta ? "Carteira não cadastrada" : "Instituição não identificada");
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [modoEscuro, setModoEscuro] = useState(() => window.localStorage.getItem("inter-theme") === "dark");

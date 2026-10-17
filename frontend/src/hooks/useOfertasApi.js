@@ -6,6 +6,7 @@ export function useOfertasApi({ status, wallet, role, enabled = true } = {}) {
   const [estado, setEstado] = useState({ status: "carregando", operacoes: [], erro: null });
   const [versao, setVersao] = useState(0);
 
+  // Cada consulta recebe um AbortController para ignorar respostas de filtros antigos.
   useEffect(() => {
     const controlador = new AbortController();
     if (!enabled) return () => controlador.abort();
@@ -20,6 +21,7 @@ export function useOfertasApi({ status, wallet, role, enabled = true } = {}) {
     return () => controlador.abort();
   }, [status, wallet, role, enabled, versao]);
 
+  // Atualiza apenas com a aba visível; ações locais também disparam o evento abaixo.
   useEffect(() => {
     if (!enabled) return undefined;
     const atualizar = () => { if (document.visibilityState === "visible") setVersao((v) => v + 1); };

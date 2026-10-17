@@ -14,6 +14,7 @@ export function AmbienteProvider({ children }) {
   });
 
   useEffect(() => {
+    // TODO: incluir o modo da API nas dependências quando o seletor de ambiente for conectado à interface.
     const controlador = new AbortController();
     Promise.all([
       buscarDeployment({ signal: controlador.signal }),
@@ -31,6 +32,7 @@ export function AmbienteProvider({ children }) {
     try { sessionStorage.setItem("inter-carteira-demo", wallet); } catch { /* Seleção disponível nesta sessão. */ }
   }
 
+  // O endereço sintético vem do backend e determina se as ações usam a API de demonstração.
   const valor = useMemo(() => {
     const demonstracao = estado.deployment?.data?.contractAddress?.toLowerCase() === CONTRATO_SINTETICO;
     const carteiraAtiva = demonstracao

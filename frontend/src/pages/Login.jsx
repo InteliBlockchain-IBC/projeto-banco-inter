@@ -11,6 +11,7 @@ export default function Login() {
   const [senha, setSenha] = useState("••••••••");
   const [carregando, setCarregando] = useState(false);
 
+  // TODO: substituir a navegação demonstrativa por autenticação no backend quando houver contrato de sessão.
   function handleEntrar(e) {
     e.preventDefault();
     setCarregando(true);

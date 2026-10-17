@@ -10,6 +10,7 @@ import EstadoCarregando from "../components/ui/EstadoCarregando";
 import EstadoErro from "../components/ui/EstadoErro";
 import { formatarDataHora, formatarMoeda } from "../services/mockOperacoes";
 import { useOperacoes } from "../context/OperacoesContext";
+import { useAmbiente } from "../context/AmbienteContext";
 import { useOfertasApi } from "../hooks/useOfertasApi";
 import {
   Search,
@@ -40,6 +41,7 @@ function HashLiquidacao({ op }) {
 
 export default function Historico() {
   const { comSalvas, alternarSalvar } = useOperacoes();
+  const { demonstracao } = useAmbiente();
   const {
     status: statusLista,
     operacoes: ofertasApi,
@@ -128,7 +130,7 @@ export default function Historico() {
           Histórico de Operações
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Registros auditáveis e liquidação em blockchain de todas as operações interfinanceiras.
+          {demonstracao ? "Ofertas e liquidações simuladas registradas pela API." : "Registros auditáveis e liquidação em blockchain de todas as operações interfinanceiras."}
         </p>
       </div>
 
@@ -186,19 +188,19 @@ export default function Historico() {
           </div>
           <div>
             <h3 className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight">
-              Rastreabilidade blockchain
+              {demonstracao ? "Rastreabilidade da demonstração" : "Rastreabilidade blockchain"}
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed mt-0.5">
-              Os registros técnicos das operações ficam centralizados neste Histórico: rede Sepolia, hash, bloco e confirmações.
+              {demonstracao ? "Os endereços, blocos e hashes exibidos são sintéticos e não representam transações na Sepolia." : "Os registros técnicos das operações ficam centralizados neste Histórico: rede Sepolia, hash, bloco e confirmações."}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
           <Badge variant="neutral" size="md">
-            Rede: Sepolia
+            {demonstracao ? "Simulação local" : "Rede: Sepolia"}
           </Badge>
-          <a
+          {!demonstracao && <a
             href="https://sepolia.etherscan.io"
             target="_blank"
             rel="noreferrer"
@@ -206,7 +208,7 @@ export default function Historico() {
           >
             <span>Explorador Etherscan</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          </a>}
         </div>
       </div>
 
