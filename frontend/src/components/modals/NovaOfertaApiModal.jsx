@@ -40,7 +40,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
   const deploymentAtivo = deployment?.data;
 
   useEffect(() => {
-    if (!isOpen || demonstracao || !conta || !naSepolia || !deploymentAtivo) return undefined;
+    if (!isOpen || demonstracao || !conta || !naSepolia || !deploymentAtivo || !limiteOperador?.isRegistered) return undefined;
     let ativo = true;
     const provider = getProvider();
     setBrlt({ status: "carregando", saldo: null, autorizado: null, erro: null });
@@ -52,7 +52,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
         if (ativo) setBrlt({ status: "erro", saldo: null, autorizado: null, erro: mensagemErroTransacao(erro) });
       });
     return () => { ativo = false; };
-  }, [isOpen, demonstracao, conta, naSepolia, deploymentAtivo, getProvider, versaoBrlt]);
+  }, [isOpen, demonstracao, conta, naSepolia, deploymentAtivo, limiteOperador?.isRegistered, getProvider, versaoBrlt]);
 
   async function enviar(evento) {
     evento.preventDefault();
@@ -108,6 +108,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
     <Modal isOpen={isOpen} onClose={processando ? undefined : onClose} showClose={!processando} title="Nova oferta de crédito" subtitle={demonstracao ? "Publicação de demonstração no backend" : "A publicação exige assinatura na MetaMask"} maxWidth="max-w-md">
       <form className="space-y-4 text-sm" onSubmit={enviar}>
         {demonstracao ? <p className="break-all text-xs text-gray-600">Ofertante de demonstração: {carteiraAtiva}</p> : !conta || !naSepolia ? <CarteiraControles /> : <p className="break-all text-xs text-gray-600">Ofertante: {conta}</p>}
+        {!demonstracao && conta && statusAmbiente === "ok" && !limiteOperador?.isRegistered && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">Esta carteira não está cadastrada como instituição no contrato. Solicite o cadastro ao administrador antes de publicar uma oferta.</p>}
         <label className="block text-xs font-medium text-gray-700">Instituição tomadora
           <select required value={tomador} onChange={(evento) => setTomador(evento.target.value)} disabled={processando || statusAmbiente !== "ok"} className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm">
             <option value="">Selecione</option>
@@ -127,8 +128,8 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
             <input required type="number" min="1" max="365" value={prazo} onChange={(evento) => setPrazo(evento.target.value)} disabled={processando} className="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm" />
           </label>
         </div>
-        <p className="text-xs text-gray-500">A oferta terá validade de 1 hora. {demonstracao ? "A ação será registrada no PostgreSQL com hash sintético." : "O backend confirma a publicação após indexar a transação."}</p>
-        {!demonstracao && conta && naSepolia && (
+        <p className="text-xs text-gray-500">A oferta terá validade de 1 hora. {demonstracao ? "A ação será registrada pela API com hash sintético." : "O backend confirma a publicação após indexar a transação."}</p>
+        {!demonstracao && conta && naSepolia && limiteOperador?.isRegistered && (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
             {brlt.status === "carregando" && <p role="status">Consultando saldo e autorização de BRLt na Sepolia...</p>}
             {brlt.status === "erro" && <><p role="alert" className="text-rose-700">{brlt.erro}</p><Button size="sm" variant="outline" onClick={() => setVersaoBrlt((atual) => atual + 1)}>Tentar novamente</Button></>}

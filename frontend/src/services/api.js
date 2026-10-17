@@ -1,6 +1,8 @@
 // Cliente HTTP da API do backend (InteliBlockchain-IBC/backend-banco-inter).
 // Sucesso: { data, meta }. Erro: RFC 9457 (application/problem+json).
-// Em desenvolvimento, VITE_API_URL fica vazio e o proxy do Vite encaminha /api.
+// Em desenvolvimento, o Vite encaminha /api e /demo-api para backends separados.
+
+import { urlApi } from "./ambienteApi.js";
 
 const TAMANHO_PAGINA = 100;
 
@@ -13,10 +15,6 @@ export class ErroApi extends Error {
     this.detalhe = detalhe;
     this.correlationId = correlationId;
   }
-}
-
-function urlBase() {
-  return (import.meta.env?.VITE_API_URL ?? "").replace(/\/$/, "");
 }
 
 function tipoPorStatus(status) {
@@ -37,7 +35,7 @@ async function lerJson(resposta) {
 export async function requisitarApi(caminho, { signal, fetchImpl = globalThis.fetch, method = "GET", body, carteira } = {}) {
   let resposta;
   try {
-    resposta = await fetchImpl(`${urlBase()}${caminho}`, {
+    resposta = await fetchImpl(urlApi(caminho), {
       method,
       headers: {
         Accept: "application/json",

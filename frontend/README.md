@@ -37,6 +37,33 @@ Testes das funções de dados (sem dependências extras): `npm test`.
 
 ### Operações e ambiente
 
+Para apresentar as telas com a massa fictícia sem alterar a API real na porta
+`3000`, abra dois terminais PowerShell. No primeiro, suba o backend em memória:
+
+```powershell
+cd ../backend-banco-inter
+npm run build
+$env:NODE_ENV = 'development'
+$env:PORT = '3001'
+Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+npm run start
+```
+
+No segundo, suba uma instância separada do frontend:
+
+```powershell
+cd ../frontend-banco-inter
+$env:API_PROXY_TARGET = 'http://127.0.0.1:3001'
+$env:VITE_API_URL = ''
+npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
+```
+
+Abra `http://127.0.0.1:5174/mesa`. A demo contém quatro bancos fictícios e
+ofertas nos diferentes estados. Escolha o banco no cabeçalho para criar, aceitar
+ou cancelar ofertas. Os dados em memória são perdidos ao encerrar o backend.
+Esse fluxo mostra a navegação e as ações simuladas, com hashes sintéticos; a
+assinatura pela MetaMask só pode ser validada no ambiente real da Sepolia.
+
 O login é demonstrativo. Mesa, detalhe, histórico, minhas ofertas, instituição e
 limites no perfil leem a API. As ofertas e o histórico são atualizados
 periodicamente. Favoritos e notificações da sessão são estados locais.
