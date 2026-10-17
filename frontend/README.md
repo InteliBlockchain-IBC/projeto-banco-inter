@@ -1,47 +1,29 @@
-# React + Vite
+# Mesa de operações interfinanceiras
 
-## MetaMask
+Frontend da prova de conceito de crédito interfinanceiro do projeto Inteli Blockchain com o Banco Inter. A aplicação reúne ofertas, limites, histórico e detalhes das operações. Há dois fluxos: uma demonstração com dados sintéticos e a integração experimental com contrato na Sepolia.
 
-A conexão com a extensão já está disponível no cabeçalho e no perfil. Veja [como testar e os pontos para integrar o backend](docs/metamask.md).
+## Baixar e executar
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Requisitos: Git, Node.js e npm. O frontend também precisa da API do [backend-banco-inter](https://github.com/InteliBlockchain-IBC/backend-banco-inter) em execução. A MetaMask é necessária apenas para assinar operações com o contrato real na Sepolia.
 
-Currently, two official plugins are available:
+```bash
+git clone https://github.com/InteliBlockchain-IBC/frontend-banco-inter.git
+cd frontend-banco-inter
+npm ci
+npm run dev
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`. A rota `/` mostra o login demonstrativo; qualquer email e senha preenchidos levam à mesa. O comando `npm run dev` usa o proxy de `/api` para `http://127.0.0.1:3000`. Configure e inicie o backend conforme o README dele antes de usar as telas que consultam ofertas e limites.
 
-## React Compiler
+Para mudar o destino do proxy, copie `.env.example` para `.env.local` e ajuste `API_PROXY_TARGET`. Esse arquivo local não deve ser versionado. Em uma publicação, `VITE_API_URL` define a origem da API; o servidor precisa permitir CORS quando frontend e API tiverem origens diferentes.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Demonstração local
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-## Rodando com a API do backend
-
-As telas de Mesa, Detalhe da operação e Histórico consomem a API do
-[backend-banco-inter](https://github.com/InteliBlockchain-IBC/backend-banco-inter).
-
-1. Suba o backend (no repositório dele): `docker compose up --build -d`, ou, sem banco,
-   `npm run build && NODE_ENV=development npm run start` (fixtures em memória).
-2. Neste repositório: `npm install` e `npm run dev`.
-
-Em desenvolvimento, o Vite encaminha `/api` para `http://127.0.0.1:3000` (o backend ainda
-não libera CORS). Para outro endereço, defina `API_PROXY_TARGET` em `.env.local`. Em um build
-publicado, `VITE_API_URL` aponta para a API (exige CORS no backend). Nenhuma das duas guarda
-segredo.
-
-Testes das funções de dados (sem dependências extras): `npm test`.
-
-### Operações e ambiente
-
-Para apresentar as telas com a massa fictícia sem alterar a API real na porta
-`3000`, abra dois terminais PowerShell. No primeiro, suba o backend em memória:
+O backend pode ser iniciado com dados em memória em uma segunda porta, mantendo a API real separada. Em PowerShell, com os dois repositórios lado a lado:
 
 ```powershell
 cd ../backend-banco-inter
+npm ci
 npm run build
 $env:NODE_ENV = 'development'
 $env:PORT = '3001'
@@ -49,42 +31,47 @@ Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
 npm run start
 ```
 
-No segundo, suba uma instância separada do frontend:
+No terminal do frontend:
 
 ```powershell
 cd ../frontend-banco-inter
-$env:API_PROXY_TARGET = 'http://127.0.0.1:3001'
-$env:VITE_API_URL = ''
 npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
 ```
 
-Abra `http://127.0.0.1:5174/mesa`. A demo contém quatro bancos fictícios e
-ofertas nos diferentes estados. Escolha o banco no cabeçalho para criar, aceitar
-ou cancelar ofertas. Os dados em memória são perdidos ao encerrar o backend.
-Esse fluxo mostra a navegação e as ações simuladas, com hashes sintéticos; a
-assinatura pela MetaMask só pode ser validada no ambiente real da Sepolia.
+O proxy `/demo-api` aponta para a porta `3001` por padrão. Para outros endereços, use `DEMO_API_PROXY_TARGET` no `.env.local`; em uma publicação, use `VITE_DEMO_API_URL`. A seleção de ambiente ainda não está exposta na interface. Para abrir a aplicação diretamente com a demo, defina `API_PROXY_TARGET=http://127.0.0.1:3001` no `.env.local` e reinicie o Vite. Depois abra `http://127.0.0.1:5174/mesa`. O backend em memória perde as alterações ao encerrar. Endereços, blocos e hashes da demo são sintéticos e não representam transações na Sepolia.
 
-O login é demonstrativo. Mesa, detalhe, histórico, minhas ofertas, instituição e
-limites no perfil leem a API. As ofertas e o histórico são atualizados
-periodicamente. Favoritos e notificações da sessão são estados locais.
+### Contrato na Sepolia
 
-O Docker com PostgreSQL pode continuar servindo o **seed sintético**. O frontend
-identifica esse deployment pelo endereço, mostra o aviso de demonstração e
-permite escolher uma carteira fictícia no cabeçalho. Criação, aceite e
-cancelamento usam `/api/mock/offers`; as alterações são gravadas no PostgreSQL
-e refletidas nas telas. Os hashes desse fluxo são sintéticos e não abrem o
-explorer da Sepolia. Nenhuma assinatura é pedida nesse ambiente.
+Com o backend apontando para um deployment real, conecte uma carteira cadastrada no contrato e selecione Sepolia na MetaMask. A criação, o aceite e o cancelamento passam por uma intenção da API, assinatura na carteira e acompanhamento do recibo. A publicação de oferta também pode exigir aprovação de BRLt. O administrador do contrato deve cadastrar as instituições e fornecer BRLt de teste. Veja [a integração da carteira](docs/metamask.md).
 
-Quando o backend servir um contrato real implantado na Sepolia, conecte uma
-carteira participante na MetaMask. O frontend pede a intenção à API, confere
-conta, rede e código do contrato, envia a transação pela MetaMask, registra o
-hash e acompanha o recibo. O listener do backend deve estar configurado para
-indexar a oferta; as rotas de intenção só estão disponíveis em `development`.
+## Comandos
 
-Para publicar uma oferta real, a interface consulta o saldo e a autorização de
-BRLt da carteira ofertante na Sepolia. Se a autorização for menor que o valor da
-oferta, solicita `approve` na MetaMask e aguarda o recibo antes de pedir a
-assinatura da oferta. Os dois hashes aparecem separadamente. No detalhe de uma
-oferta aberta, o ofertante também pode autorizar BRLt para uma oferta já criada.
-O admin do contrato precisa cadastrar as carteiras e fornecer BRLt de teste;
-essas ações não são feitas pelo frontend.
+| Comando | Uso |
+| --- | --- |
+| `npm run dev` | Inicia o Vite para desenvolvimento. |
+| `npm run build` | Gera a versão estática em `dist/`. |
+| `npm run preview` | Serve o build localmente. |
+| `npm test` | Executa os testes de serviços e funções de dados. |
+| `npm run lint` | Verifica o código com ESLint. |
+
+## Estrutura do repositório
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `src/pages/` | Telas de login, mesa, ofertas, histórico, detalhes e perfil. |
+| `src/components/` | Componentes compartilhados, modais e elementos de interface. |
+| `src/context/` | Estado da carteira, do ambiente e das operações. |
+| `src/hooks/` | Consultas e atualização periódica das ofertas. |
+| `src/services/` | Cliente da API, adaptação de dados, MetaMask, BRLt e transações. |
+| `src/styles/`, `src/utils/` | Estilos, tokens e formatação. |
+| `public/`, `src/assets/` | Imagens e recursos estáticos. |
+| `tests/` | Testes automatizados e dados de teste. |
+| `docs/` | [Documentação do projeto](docs/documentacao.md), [arquitetura](docs/architecture.md), carteira e UX. |
+
+O login é demonstrativo e não autentica o operador. A API fornece ofertas, limites, deployment e histórico. Favoritos e notificações são estados locais da interface. As listas de ofertas são atualizadas periodicamente.
+
+## Autores
+
+- [Ana Célia Augusta Santos do Amaral](https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/)
+- [Gabriel Rodrigues](https://www.linkedin.com/in/rodriguesgabrieleng)
+- [José Guilherme Gonçalves Maia](https://www.linkedin.com/in/jos%C3%A9-guilherme-gon%C3%A7alves-maia/)

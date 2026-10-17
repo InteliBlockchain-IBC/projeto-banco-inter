@@ -14,6 +14,7 @@ export function AmbienteProvider({ children }) {
   });
 
   useEffect(() => {
+    // TODO: incluir o modo da API nas dependências quando o seletor de ambiente for conectado à interface.
     const controlador = new AbortController();
     Promise.all([
       buscarDeployment({ signal: controlador.signal }),

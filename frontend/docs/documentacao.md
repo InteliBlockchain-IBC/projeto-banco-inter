@@ -10,7 +10,7 @@
 
 ## Controle do documento
 
-| Aplicação publicada | [Link do preview ou produção] |
+| Aplicação publicada | Não há URL de publicação registrada neste repositório. Execute localmente conforme o [README](../README.md). |
 
 ## Sumário
 
@@ -21,11 +21,11 @@
    - [Jornadas da persona](#23-jornadas-da-persona)
    - [User stories](#24-user-stories)
 3. [Semana 2 — Prototipação e design system](#3-semana-2--prototipação-e-design-system)
-4. [Semana 3 — Implementação das interfaces](#4-semana-3--implementação-das-interfaces)
-5. [Semana 4 — Integrações](#5-semana-4--integrações)
-6. [Semana 5 — Finalização e demonstração](#6-semana-5--finalização-e-demonstração)
+4. [Implementação atual](#4-implementação-atual)
+5. [Integração com API e carteira](#5-integração-com-api-e-carteira)
+6. [Demonstração e limites](#6-demonstração-e-limites)
 7. [Qualidade e testes](#7-qualidade-e-testes)
-8. [Rastreabilidade dos entregáveis](#8-rastreabilidade-dos-entregáveis)
+8. [Rastreabilidade](#8-rastreabilidade)
 9. [Conclusão](#9-conclusão)
 10. [Referências](#10-referências)
 11. [Anexos](#11-anexos)
@@ -93,14 +93,14 @@ O público principal é formado por operadores de tesouraria de instituições f
 
 | Categoria | Tecnologia | Versão | Situação/justificativa |
 | --- | --- | --- | --- |
-| Frontend | React | [Definir] | Previsto no cronograma do frontend para componentização das telas. |
-| Estilização | [Definir] | [Definir] | Decisão pendente da equipe. |
-| Smart contracts | Solidity e Foundry | [Definir] | Stack definida pelo TAP para implementação e testes dos contratos. |
-| Blockchain | Testnet Sepolia | [Definir] | Ambiente obrigatório; não utiliza ativos reais. |
-| Backend | Node.js, TypeScript e Express | [Definir] | Stack recomendada no TAP; confirmar adoção pela equipe. |
-| Banco de dados | PostgreSQL | [Definir] | Tecnologia recomendada no TAP; confirmar adoção pela equipe. |
-| Testes do frontend | [Definir] | [Definir] | Ferramentas e cobertura ainda não informadas. |
-| Publicação | [Definir] | [Definir] | Plataforma de preview ainda não informada. |
+| Frontend | React, React Router e Vite | 19, 7 e 8 | Telas e rotas implementadas em JavaScript/JSX. |
+| Estilização | Tailwind CSS | 4 | Estilos globais e tokens em `src/styles/`. |
+| Smart contracts | Solidity e Foundry | Repositório do contrato | O frontend usa o deployment informado pela API; os contratos não estão neste repositório. |
+| Blockchain | Ethereum Sepolia | chain ID 11155111 | Rede usada para operações assinadas pela MetaMask. |
+| Backend | API `backend-banco-inter` | Repositório separado | Fornece ofertas, limites, deployment e intenções de transação. |
+| Banco de dados | PostgreSQL ou memória | Configuração do backend | O frontend não acessa o banco diretamente. |
+| Testes do frontend | `node:test` | Integrado ao Node.js | `npm test` executa os testes em `tests/`. |
+| Publicação | Vite build | Sem hospedagem registrada | `npm run build` gera `dist/`. |
 
 ### 1.7 Requisitos funcionais
 
@@ -129,7 +129,7 @@ O público principal é formado por operadores de tesouraria de instituições f
 - O cancelamento é permitido somente antes do aceite pela contraparte.
 - A transferência do token e a liquidação devem ocorrer de forma atômica.
 - Os estados mínimos informados pelo TAP são: ofertada, aceita e liquidada.
-- Todas as operações são experimentais e utilizam apenas a testnet Sepolia.
+- Operações assinadas usam apenas a testnet Sepolia; a demonstração local usa dados sintéticos sem transação na rede.
 
 ---
 
@@ -325,9 +325,9 @@ de teste durante o refinamento.
 
 ### 3.1 Protótipo navegável
 
-**Link:** [Insira o link do protótipo]
+**Link:** O link do protótipo não está registrado neste repositório; o [arquivo de design](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106) contém o design system.
 
-**Fluxos disponíveis:**
+**Fluxos contemplados pela implementação:**
 
 - Criar uma oferta.
 - Consultar e aceitar uma oferta disponível.
@@ -335,17 +335,17 @@ de teste durante o refinamento.
 - Acompanhar a liquidação e consultar o hash.
 - Consultar o histórico e abrir o detalhe de uma operação.
 
-**Instruções de navegação:** [Preencher]
+**Instruções de navegação:** A implementação pode ser explorada localmente a partir de `/`, seguindo o [README](../README.md).
 
 ### 3.2 Visual final da aplicação
 
-[Insira imagens das telas finais ou seus respectivos links.]
+As telas implementadas podem ser abertas localmente. Não há capturas finais versionadas.
 
 | Tela | Objetivo | Estados representados | Link ou caminho |
 | --- | --- | --- | --- |
-| Mesa de operações | Exibir limites, taxas, ofertas e estados das operações. | Carregamento, vazio, ofertada, aceita, liquidada e erro. | [Preencher] |
-| Detalhe da operação | Reunir dados de rastreabilidade e ações disponíveis. | Ofertada, validação de limite, assinatura, processamento, liquidada, cancelada e erro. | [Preencher] |
-| Histórico | Permitir consulta e acesso aos detalhes de operações anteriores. | Carregamento, vazio, resultados, nenhum resultado e erro. | [Preencher] |
+| Mesa de operações | Exibir limites, taxas, ofertas e estados das operações. | Carregamento, vazio, ofertada, liquidada e erro. | `src/pages/MesaOperacoes.jsx` |
+| Detalhe da operação | Reunir dados de rastreabilidade e ações disponíveis. | Ofertada, validação de limite, assinatura, processamento, liquidada, cancelada e erro. | `src/pages/DetalheOperacaoApi.jsx` |
+| Histórico | Permitir consulta e acesso aos detalhes de operações anteriores. | Carregamento, vazio, resultados, nenhum resultado e erro. | `src/pages/Historico.jsx` |
 
 ### 3.3 Design system
 
@@ -497,313 +497,73 @@ O badge tem dois tamanhos: Padrão (altura 28 px, `rotulo/forte`), para cards e 
 
 | Entregável | Link ou caminho | Responsável | Status |
 | --- | --- | --- | --- |
-| Protótipo navegável | [Preencher] | [Preencher] | [Preencher] |
-| Telas com visual final | [Preencher] | [Preencher] | [Preencher] |
+| Protótipo navegável | Link não registrado neste repositório | Equipe de UX | Sem evidência versionada |
+| Telas com visual final | `src/pages/` | Equipe frontend | Implementadas |
 | Design system | [Figma — Design System · Mesa de Operações](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106) · tokens em `src/styles/tokens.css` | José Maia | Concluído |
 
 ---
 
-## 4. Semana 3 — Implementação das interfaces
+## 4. Implementação atual
 
-**Período:** 28/09 a 04/10
+As rotas são definidas em `src/App.jsx`. O login em `/` encaminha para `/mesa` após o preenchimento do formulário, sem validar credenciais. As páginas dentro de `Layout` compartilham cabeçalho e navegação; não existe proteção de rota por sessão.
 
-### 4.1 Arquitetura do frontend
+| Rota | Tela | Fonte principal |
+| --- | --- | --- |
+| `/` | Login demonstrativo | Estado local |
+| `/mesa` | Mesa de operações | Ofertas abertas e limites da API |
+| `/minhas-ofertas` | Ofertas da carteira selecionada | API de ofertas |
+| `/operacoes/:id` | Detalhe e ações da oferta | API, eventos e limite da contraparte |
+| `/historico` | Histórico | API de ofertas |
+| `/perfil` | Perfil e histórico de limite | API de limites e MetaMask |
 
-O repositório possui uma estrutura inicial independente de detalhes de
-implementação. A adoção de React está prevista, mas as bibliotecas de rotas,
-estado, estilização, testes e integração Web3 ainda precisam ser definidas.
+`src/components/` reúne cabeçalho, cartões, modais e estados de carregamento ou erro. `src/context/` mantém a conta conectada, o deployment e estados locais da interface. `src/hooks/` consulta ofertas e atualiza as listas a cada 15 segundos enquanto a aba está visível. A [arquitetura](architecture.md) detalha o caminho dos dados.
 
-```text
-src/
-├── assets/        # Recursos importados pela aplicação
-├── components/    # Componentes reutilizáveis
-├── pages/         # Mesa, detalhe e histórico
-├── services/      # API, carteira e blockchain
-├── styles/        # Estilos globais e tokens
-└── utils/         # Funções auxiliares
-```
+## 5. Integração com API e carteira
 
-### 4.2 Componentes implementados
+O cliente em `src/services/api.js` recebe respostas `{ data, meta }` e converte erros RFC 9457 em `ErroApi`. `src/services/adaptadorOfertas.js` traduz os dados para as telas. A API fornece ofertas paginadas, eventos, limites, histórico de limite, deployment e intenções de transação. Em desenvolvimento, o Vite encaminha `/api` para a porta 3000 e `/demo-api` para a porta 3001, salvo configuração diferente em `.env.local`.
 
-| Componente | Responsabilidade | Propriedades principais | Estados | Caminho no código |
-| --- | --- | --- | --- | --- |
-| [Nome] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
+O deployment com endereço sintético identifica a demonstração. Nesse ambiente, o backend executa as rotas `/api/mock/offers`, não solicita assinatura e retorna hashes sintéticos. Com deployment real, a carteira precisa estar conectada à Sepolia e cadastrada no contrato. O serviço `src/services/transacoes.js` valida conta, rede, código do contrato e argumentos da intenção antes de pedir a assinatura à MetaMask. Após o envio, registra o hash na API e acompanha o recibo. A oferta depende da indexação do backend para aparecer atualizada.
 
-### 4.3 Telas navegáveis com dados simulados
+Antes de publicar uma oferta real, `src/services/brlt.js` consulta saldo e autorização de BRLt. Se a autorização for insuficiente, solicita `approve` e aguarda o recibo. O ofertante também pode autorizar BRLt em uma oferta já aberta. A [documentação da carteira](metamask.md) descreve a conexão e a verificação manual.
 
-#### Mesa de operações
+O código de seleção de ambiente em `src/services/ambienteApi.js` ainda não tem controle na interface. Hoje a execução direta da demo exige apontar `API_PROXY_TARGET` para o backend de demonstração e reiniciar o Vite. O README traz os comandos.
 
-**Descrição:** [Preencher]
+## 6. Demonstração e limites
 
-**Dados simulados utilizados:** [Preencher]
+Há quatro instituições fictícias e ofertas em diferentes estados no backend em memória. O banco ativo é escolhido no cabeçalho quando o deployment é sintético. Criar, aceitar e cancelar ofertas altera os dados dessa instância até ela ser encerrada. Os endereços, blocos e hashes não são provas de transação na Sepolia.
 
-**Evidência:** [Insira imagem, vídeo ou link]
-
-#### Detalhe da operação
-
-**Descrição:** [Preencher]
-
-**Dados simulados utilizados:** [Preencher]
-
-**Evidência:** [Insira imagem, vídeo ou link]
-
-#### Histórico
-
-**Descrição:** [Preencher]
-
-**Dados simulados utilizados:** [Preencher]
-
-**Evidência:** [Insira imagem, vídeo ou link]
-
-### 4.4 Rotas da aplicação
-
-> Rotas propostas com base nas telas previstas; confirmar durante a
-> implementação.
-
-| Rota | Tela | Finalidade | Parâmetros | Proteção de acesso |
-| --- | --- | --- | --- | --- |
-| `/` | Mesa de operações | Consultar ofertas, limites, taxas e status. | Nenhum | [Definir] |
-| `/ofertas/nova` | Nova oferta | Registrar taxa CDI, valor e prazo. | Nenhum | Carteira conectada [confirmar] |
-| `/operacoes/:id` | Detalhe da operação | Consultar dados e executar ações permitidas. | Identificador da operação | Carteira conectada [confirmar] |
-| `/historico` | Histórico | Consultar operações registradas. | Filtros [definir] | [Definir] |
-
-### 4.5 Preview publicado
-
-| Campo | Preenchimento |
-| --- | --- |
-| URL | [Preencher] |
-| Ambiente | [Preencher] |
-| Versão/commit | [Preencher] |
-| Data da publicação | [Preencher] |
-| Instruções de acesso | [Preencher] |
-
-### 4.6 Evidências e links da semana
-
-| Entregável | Link ou caminho | Responsável | Status |
-| --- | --- | --- | --- |
-| Componentes em React | [Preencher] | [Preencher] | [Preencher] |
-| Telas navegáveis | [Preencher] | [Preencher] | [Preencher] |
-| Preview da aplicação | [Preencher] | [Preencher] | [Preencher] |
-
----
-
-## 5. Semana 4 — Integrações
-
-**Período:** 05/10 a 11/10
-
-### 5.1 Integração com a API
-
-Cliente em `src/services/api.js`, adaptado em `src/services/adaptadorOfertas.js`. Contrato: `backend-banco-inter/docs/api.md` (v0.4.0). Respostas de sucesso vêm em `{ data, meta }`; erros seguem RFC 9457 (`application/problem+json`) e viram `ErroApi` com `tipo` (`nao-encontrada`, `invalida`, `indisponivel`, `inesperado`) e `correlationId`. Em desenvolvimento, `/api` passa pelo proxy do Vite (o backend ainda não libera CORS).
-
-| Tela/ação | Método | Endpoint | Dados enviados | Dados recebidos | Tratamento de erro |
-| --- | --- | --- | --- | --- | --- |
-| Detalhe — dados da oferta | GET | `/api/offers/{id}` | UUID da oferta (rota `/operacoes/:id`) | `Offer`: partes, `amountCents`, `rateCdiBps`, `termDays`, `status`, `createTxHash`, `settlement` | 404/400 → "Operação não encontrada"; rede/5xx → "API indisponível" + "Tentar novamente" |
-| Detalhe — transações on-chain | GET | `/api/offers/{id}/events` | UUID da oferta | `ChainEvent[]` (`eventName`, `txHash`, `blockNumber`, `blockTimestamp`) | Falha não bloqueia a tela: usa `createTxHash` e `settlement.txHash` da própria oferta e avisa |
-| Detalhe — limite do tomador | GET | `/api/credit-limits/{wallet}` | Carteira do tomador | `availableLimitCents`, `isRegistered`, `observedBlock` | Falha mostra "Limite indisponível no momento" só no card |
-| Mesa — ofertas abertas | GET | `/api/offers?status=offered` | `limit`/`offset` (pagina até `meta.total`) | `Offer[]` paginado | Esqueleto, mensagem de indisponibilidade e nova tentativa |
-| Histórico — todas as ofertas | GET | `/api/offers` | `limit`/`offset` (pagina até `meta.total`) | `Offer[]` paginado | "Não foi possível carregar o histórico" + "Tentar novamente" |
-
-### 5.2 Dados reais nas telas
-
-| Tela | Fonte dos dados | Transformações | Atualização | Evidência |
-| --- | --- | --- | --- | --- |
-| Mesa de operações | `GET /api/offers?status=offered` | Centavos → BRL exato (`BigInt`), bps → "% CDI", status da API → rótulo pt-BR | Ao abrir a tela e em "Tentar novamente". KPIs e "Minhas ofertas" seguem simulados até a carteira estar integrada | `src/pages/MesaOperacoes.jsx` |
-| Detalhe da operação | `GET /api/offers/{id}`, `/events` e `/api/credit-limits/{wallet}` | Idem, mais agrupamento de `OfferAccepted` + `OfferSettled` (mesmo hash, DvP) e hash abreviado 6 + 4 | Consulta a cada 10 s enquanto a oferta está `Ofertada` e a aba está visível (RNF02 ≤ 30 s); botão "Atualizar" | `src/pages/DetalheOperacaoApi.jsx` |
-| Histórico | `GET /api/offers` | Idem; hash da liquidação com link para o explorer | Ao abrir a tela e em "Tentar novamente" | `src/pages/Historico.jsx` |
-
-**Mapeamento de status:** `offered` → Ofertada, `settled` → Liquidada, `cancelled` → Cancelada, `rejected` → Negada, `expired` → Expirada. "Aceita" não é persistido: aceite e liquidação acontecem na mesma transação (DvP), então aparece só como etapa da linha do tempo.
-
-### 5.3 Conexão da carteira
-
-| Campo | Preenchimento |
-| --- | --- |
-| Carteira/provedor | [Preencher] |
-| Rede | Sepolia (testnet) |
-| Fluxo de conexão | Solicitar conexão → validar conta e rede → autorizar ações ou orientar troca para Sepolia. |
-| Permissões solicitadas | [Preencher] |
-| Dados exibidos | Endereço resumido da conta e identificação clara da rede [confirmar]. |
-| Tratamento de desconexão | Bloquear ações de assinatura e oferecer reconexão [confirmar]. |
-
-**Evidência:** [Insira imagem, vídeo ou link]
-
-### 5.4 Assinatura da operação e hash
-
-**Fluxo de assinatura:**
-
-1. O operador revisa os dados da oferta ou do aceite.
-2. A aplicação solicita a assinatura na carteira conectada à Sepolia.
-3. A interface informa o processamento e aguarda a confirmação.
-4. Em caso de sucesso, a operação exibe o status atualizado e o hash.
-5. Em caso de rejeição ou falha, a interface explica o resultado e a possível recuperação.
-
-| Campo | Preenchimento |
-| --- | --- |
-| Ação que inicia a assinatura | Confirmação de uma ação *on-chain*, como oferta, aceite ou cancelamento [validar com o contrato]. |
-| Confirmação solicitada | Resumo da instituição, valor, taxa CDI, prazo e ação. |
-| Local de exibição do hash | Detalhe da operação e histórico. |
-| Link para o explorador | `https://sepolia.etherscan.io/tx/<hash>` (endereços em `/address/<carteira>`), gerado só para hashes válidos (`0x` + 64 hex). Componente `HashTransacao` com botão de copiar. |
-| Evidência | [Preencher] |
-
-### 5.5 Estados de interface
-
-| Contexto | Carregamento | Sucesso | Vazio | Erro | Recuperação |
-| --- | --- | --- | --- | --- | --- |
-| Consulta de operações | Indicador durante a busca. | Dados e horários atualizados. | Mensagem sem operações. | Mensagem de indisponibilidade. | Nova tentativa. |
-| Conexão da carteira | Solicitação em andamento. | Conta e rede exibidas. | Não se aplica. | Carteira ausente, acesso recusado ou rede incorreta. | Reconectar ou trocar para Sepolia. |
-| Assinatura da operação | Aguardando ação na carteira. | Assinatura enviada. | Não se aplica. | Assinatura rejeitada ou falha no envio. | Tentar novamente sem duplicar a operação. |
-| Confirmação da operação | Transação pendente, com tempo decorrido. | Status liquidada e hash visível. | Não se aplica. | Falha ou ausência de confirmação. | Consulta automática a cada 10 s enquanto a oferta está aberta; se uma atualização falhar, mantém o último dado confirmado e avisa o horário. |
-
-### 5.6 Evidências e links da semana
-
-| Entregável | Link ou caminho | Responsável | Status |
-| --- | --- | --- | --- |
-| Integração com a API | Branch `feat/detalhe-operacao-api` (`src/services/api.js`, `src/hooks/`) | Guilherme Maia | Em revisão |
-| Conexão da carteira | [Preencher] | [Preencher] | [Preencher] |
-| Assinatura e exibição do hash | [Preencher] | [Preencher] | [Preencher] |
-| Estados de carregamento e erro | `src/components/ui/EstadoCarregando.jsx`, `src/components/ui/EstadoErro.jsx` | Guilherme Maia | Em revisão |
-
----
-
-## 6. Semana 5 — Finalização e demonstração
-
-**Período:** 12/10 a 17/10
-
-### 6.1 Ajustes finais da interface
-
-| Ajuste | Motivação | Tela/componente | Evidência antes/depois | Status |
-| --- | --- | --- | --- | --- |
-| [Preencher] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-
-### 6.2 Acessibilidade e apresentação em telão
-
-| Verificação | Critério utilizado | Resultado | Ajuste realizado | Evidência |
-| --- | --- | --- | --- | --- |
-| Contraste | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Tamanho dos textos | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Tamanho dos controles | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Navegação por teclado | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Responsividade | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-| Visualização em telão | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-
-### 6.3 Vídeo de demonstração
-
-| Campo | Preenchimento |
-| --- | --- |
-| Link do vídeo | [Preencher] |
-| Duração | [Preencher] |
-| Responsáveis | [Preencher] |
-| Link do roteiro | [Preencher] |
-| Legendas revisadas | [Sim/Não] |
-| Data de publicação | [Preencher] |
-
-#### Roteiro
-
-| Tempo estimado | Cena | Narração | Recurso visual | Responsável |
-| --- | --- | --- | --- | --- |
-| [00:00–00:00] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-
-### 6.4 Evidências e links da semana
-
-| Entregável | Link ou caminho | Responsável | Status |
-| --- | --- | --- | --- |
-| Interface final revisada | [Preencher] | [Preencher] | [Preencher] |
-| Revisão para apresentação | [Preencher] | [Preencher] | [Preencher] |
-| Vídeo demo com legenda | [Preencher] | [Preencher] | [Preencher] |
-
----
+O fluxo real depende de contrato implantado, listener ativo, carteiras cadastradas, BRLt de teste e MetaMask. Esta documentação não registra uma execução ponta a ponta desse ambiente. O login demonstrativo não autentica usuários. Favoritos ficam no armazenamento local; notificações e comparação de ofertas vivem na sessão da interface.
 
 ## 7. Qualidade e testes
 
-### 7.1 Estratégia de testes
+`npm test` executa 45 testes de adaptação de ofertas, cliente HTTP, BRLt, formatação, conexão da carteira e transações. `npm run lint` verifica o código e `npm run build` gera `dist/`. Esses três comandos passaram na revisão de 17/10/2026. Os testes usam APIs e providers simulados; não substituem a verificação manual de assinatura na extensão e a indexação real na Sepolia.
 
-A estratégia deve combinar testes de componentes, integração com a API e
-testes dos fluxos críticos ponta a ponta. As operações blockchain devem ser
-executadas exclusivamente na testnet Sepolia. As ferramentas, a meta de
-cobertura e os ambientes de execução ainda serão definidos pela equipe.
+Pontos pendentes: ligar o seletor de ambiente à interface e à atualização dos dados, implementar autenticação se o projeto passar a exigir acesso controlado e registrar evidência manual dos fluxos reais na Sepolia. Não há URL de preview ou vídeo de demonstração registrada neste repositório.
 
-Critérios mínimos derivados do TAP:
+## 8. Rastreabilidade
 
-- impedir o aceite quando o limite de crédito for insuficiente;
-- executar a liquidação de forma atômica;
-- refletir a confirmação simulada na interface em até 30 segundos;
-- registrar e exibir timestamp, partes, taxa CDI e hash da transação;
-- permitir o cancelamento somente antes do aceite;
-- não acessar sistemas de produção nem movimentar ativos reais.
-
-### 7.2 Casos de teste
-
-| ID | Funcionalidade | Cenário | Resultado esperado | Resultado obtido | Evidência | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| CT-01 | Nova oferta | Informar taxa CDI, valor e prazo válidos e confirmar. | A oferta é registrada com status ofertada. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-02 | Validação de limite | Tentar aceitar uma oferta sem limite suficiente. | O aceite é impedido e a interface explica o motivo. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-03 | Liquidação atômica | Aceitar uma oferta com limite suficiente. | Token e ativo são liquidados na mesma transação simulada. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-04 | Confirmação | Acompanhar uma liquidação após o aceite. | A confirmação fica visível em até 30 segundos. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-05 | Rastreabilidade | Abrir uma operação concluída no histórico. | Timestamp, partes, taxa CDI e hash são exibidos. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-06 | Cancelamento | Cancelar uma oferta antes do aceite. | A oferta é cancelada e deixa de aceitar contraparte. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-07 | Cancelamento bloqueado | Tentar cancelar uma oferta já aceita. | A ação não é permitida. | [Preencher após execução] | [Preencher] | Planejado |
-| CT-08 | Rede incorreta | Tentar realizar uma ação fora da Sepolia. | A aplicação bloqueia a ação e orienta a troca de rede. | [Preencher após execução] | [Preencher] | Planejado |
-
-### 7.3 Compatibilidade
-
-| Navegador/dispositivo | Versão/resolução | Resultado | Observações |
-| --- | --- | --- | --- |
-| [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-
-### 7.4 Problemas conhecidos
-
-| ID | Problema | Impacto | Solução temporária | Próximo passo |
-| --- | --- | --- | --- | --- |
-| [Preencher] | [Preencher] | [Preencher] | [Preencher] | [Preencher] |
-
----
-
-## 8. Rastreabilidade dos entregáveis
-
-| Semana | Entregável | Requisito relacionado | Evidência | Responsável | Status |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Wireframes, fluxo de telas, persona e jornada | RF01–RF06 | [Preencher] | [Preencher] | Planejado |
-| 2 | Protótipo navegável e design system | RF01–RF06, RNF02 e RNF03 | [Preencher] | [Preencher] | Planejado |
-| 3 | Componentes React, telas navegáveis e preview | RF01, RF04–RF06 | [Preencher] | [Preencher] | Planejado |
-| 4 | API, carteira, assinatura, hash e estados da interface | RF01–RF06, RNF01–RNF03 | [Preencher] | [Preencher] | Planejado |
-| 5 | Ajustes finais, acessibilidade e vídeo demo | RNF02 e RNF04 | [Preencher] | [Preencher] | Planejado |
-
----
+| Entrega | Código e documentação |
+| --- | --- |
+| Mesa, ofertas e histórico | `src/pages/`, `src/hooks/`, `src/services/adaptadorOfertas.js` |
+| Integração com API | `src/services/api.js`, `src/context/AmbienteContext.jsx` |
+| Carteira e transações | `src/context/CarteiraContext.jsx`, `src/services/metamask.js`, `src/services/transacoes.js` |
+| Aprovação de BRLt | `src/services/brlt.js`, `src/components/AutorizacaoBrlt.jsx` |
+| UX, fluxos e personas | `docs/ux/` |
+| Verificação automatizada | `tests/` |
 
 ## 9. Conclusão
 
-### 9.1 Resultados alcançados
-
-[Preencher ao final do projeto com resultados verificáveis, links e relação
-entre as entregas e os requisitos RF01–RF06 e RNF01–RNF04.]
-
-### 9.2 Limitações
-
-- A PoC não se conecta aos sistemas legados ou de produção do Banco Inter.
-- A solução não movimenta dinheiro nem ativos reais.
-- As operações ocorrem exclusivamente na testnet Sepolia.
-- A liquidação é simulada dentro da blockchain, sem liquidação financeira externa.
-- O projeto acadêmico não prevê manutenção, suporte ou correções após o encerramento.
-
-### 9.3 Próximos passos
-
-- Validar wireframes, persona, jornada e fluxo de telas com o parceiro.
-- Definir as bibliotecas do frontend e a integração com a carteira.
-- Implementar e testar os fluxos de oferta, aceite, cancelamento e liquidação.
-- Registrar evidências e resultados reais ao final de cada semana.
-
----
+O frontend cobre consulta, criação, aceite e cancelamento de ofertas, perfil e histórico. A demo permite percorrer esses fluxos sem assinatura. Para operar na Sepolia, o backend e o contrato precisam estar configurados e o operador deve usar uma carteira cadastrada com BRLt de teste. As limitações de autenticação e seleção de ambiente estão descritas acima.
 
 ## 10. Referências
 
-- INTELI BLOCKCHAIN; BANCO INTER. **TAP — Protocolo de concessão de crédito
-  interfinanceiro**. Termo de Abertura do Projeto fornecido à equipe.
-- [AUTOR/ORGANIZAÇÃO. Título. Ano. Link. Data de acesso.]
-
----
+- [Backend do projeto](https://github.com/InteliBlockchain-IBC/backend-banco-inter).
+- [Design system no Figma](https://www.figma.com/design/Mfw2YIbDKTmjuyLKGII7JI/Frontend-Projeto-Inter?node-id=351-106).
+- TAP do projeto Banco Inter e Inteli Blockchain, utilizado na definição dos requisitos e da jornada.
 
 ## 11. Anexos
 
-| Anexo | Descrição | Link ou caminho |
-| --- | --- | --- |
-| TAP do projeto | Termo de Abertura do Projeto utilizado como fonte da visão geral, requisitos e restrições. | [Adicionar cópia ou link autorizado] |
-| [Nome] | [Preencher] | [Preencher] |
+- [README do frontend](../README.md): instalação, execução e estrutura.
+- [Arquitetura](architecture.md): componentes e fluxo de dados.
+- [MetaMask](metamask.md): conexão e teste manual.
+- [Documentos de UX](ux/README.md): personas e jornada.
