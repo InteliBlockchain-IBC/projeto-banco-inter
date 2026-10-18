@@ -1,5 +1,7 @@
 # Mesa de operações interfinanceiras
 
+<img src="public/logo_inter.png" alt="Logo do Banco Inter" width="220">
+
 ## Integrantes
 
 - [Ana Célia Augusta Santos do Amaral](https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/)
