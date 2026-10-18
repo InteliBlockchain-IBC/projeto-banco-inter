@@ -7,47 +7,47 @@ const ABI = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
 ]);
 
-async function lerContrato(provider, token, functionName, args) {
+async function readContract(provider, token, functionName, args) {
   const data = encodeFunctionData({ abi: ABI, functionName, args });
-  const resultado = await provider.request({ method: "eth_call", params: [{ to: token, data }, "latest"] });
-  return decodeFunctionResult({ abi: ABI, functionName, data: resultado });
+  const result = await provider.request({ method: "eth_call", params: [{ to: token, data }, "latest"] });
+  return decodeFunctionResult({ abi: ABI, functionName, data: result });
 }
 
-export async function consultarBrlt({ provider, carteira, deployment }) {
-  if (!provider || !carteira || !deployment?.brlTokenAddress || !deployment?.contractAddress) {
+export async function readBrlt({ provider, wallet, deployment }) {
+  if (!provider || !wallet || !deployment?.brlTokenAddress || !deployment?.contractAddress) {
     throw new Error("Conecte a carteira e aguarde os endereços dos contratos.");
   }
   if (await provider.request({ method: "eth_chainId" }) !== SEPOLIA_CHAIN_ID) {
     throw new Error("Troque a carteira para a rede Sepolia.");
   }
-  const contas = await provider.request({ method: "eth_accounts" });
-  if (!contas.some((conta) => conta.toLowerCase() === carteira.toLowerCase())) {
+  const accounts = await provider.request({ method: "eth_accounts" });
+  if (!accounts.some((account) => account.toLowerCase() === wallet.toLowerCase())) {
     throw new Error("A conta conectada mudou. Conecte a carteira novamente.");
   }
-  const [saldo, autorizado] = await Promise.all([
-    lerContrato(provider, deployment.brlTokenAddress, "balanceOf", [carteira]),
-    lerContrato(provider, deployment.brlTokenAddress, "allowance", [carteira, deployment.contractAddress]),
+  const [balance, approved] = await Promise.all([
+    readContract(provider, deployment.brlTokenAddress, "balanceOf", [wallet]),
+    readContract(provider, deployment.brlTokenAddress, "allowance", [wallet, deployment.contractAddress]),
   ]);
-  return { saldo, autorizado };
+  return { balance, approved };
 }
 
-export async function aprovarBrlt({ provider, carteira, deployment, valor, aoAtualizar }) {
-  const necessario = BigInt(valor);
-  const { saldo, autorizado } = await consultarBrlt({ provider, carteira, deployment });
-  if (saldo < necessario) {
+export async function approveBrlt({ provider, wallet, deployment, value, onUpdate }) {
+  const required = BigInt(value);
+  const { balance, approved } = await readBrlt({ provider, wallet, deployment });
+  if (balance < required) {
     throw new Error("Saldo de BRLt insuficiente para esta oferta. Solicite tokens de teste ao administrador.");
   }
-  if (autorizado >= necessario) return { aprovado: true, hash: null };
+  if (approved >= required) return { aprovado: true, hash: null };
 
-  aoAtualizar?.({ fase: "assinando", hash: null });
+  onUpdate?.({ phase: "assinando", hash: null });
   const data = encodeFunctionData({
-    abi: ABI, functionName: "approve", args: [deployment.contractAddress, necessario],
+    abi: ABI, functionName: "approve", args: [deployment.contractAddress, required],
   });
   const hash = await provider.request({
     method: "eth_sendTransaction",
-    params: [{ from: carteira, to: deployment.brlTokenAddress, data }],
+    params: [{ from: wallet, to: deployment.brlTokenAddress, data }],
   });
-  aoAtualizar?.({ fase: "confirmando", hash });
+  onUpdate?.({ phase: "confirmando", hash });
 
   // O approve só é útil depois de confirmado. Nunca envie a oferta se a
   // confirmação for desconhecida ou se o recibo indicar reversão.
@@ -62,7 +62,7 @@ export async function aprovarBrlt({ provider, carteira, deployment, valor, aoAtu
       if (recibo.status !== "0x1") {
         throw Object.assign(new Error("A aprovação de BRLt falhou na Sepolia."), { hash });
       }
-      aoAtualizar?.({ fase: "confirmada", hash });
+      onUpdate?.({ phase: "confirmada", hash });
       return { aprovado: true, hash };
     }
     await new Promise((resolve) => setTimeout(resolve, 4000));

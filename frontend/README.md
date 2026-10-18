@@ -1,5 +1,7 @@
 # Mesa de operações interfinanceiras
 
+<img src="public/logo_inter.png" alt="Logo do Banco Inter" width="220">
+
 ## Integrantes
 
 - [Ana Célia Augusta Santos do Amaral](https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/)
@@ -75,5 +77,9 @@ Com o backend apontando para um deployment real, conecte uma carteira cadastrada
 | `public/`, `src/assets/` | Imagens e recursos estáticos. |
 | `tests/` | Testes automatizados e dados de teste. |
 | `docs/` | [Documentação do projeto](docs/documentacao.md), [arquitetura](docs/architecture.md), carteira e UX. |
+
+### Convenções de nomes
+
+O código segue o padrão do backend: identificadores internos em inglês, `camelCase` para funções e variáveis, `PascalCase` para componentes React e `UPPER_SNAKE_CASE` para constantes. Arquivos de serviços e hooks usam nomes em inglês. Os campos enviados ou recebidos pela API e os nomes exigidos pelo contrato ou pelas bibliotecas mantêm sua grafia original. Textos da interface e documentação para o usuário permanecem em português.
 
 O login é demonstrativo e não autentica o operador. A API fornece ofertas, limites, deployment e histórico. Favoritos e notificações são estados locais da interface. As listas de ofertas são atualizadas periodicamente.

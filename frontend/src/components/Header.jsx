@@ -1,55 +1,55 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { useOperacoes } from "../context/OperacoesContext";
-import { useAmbiente } from "../context/AmbienteContext";
-import { abreviarEndereco } from "../services/metamask";
+import { useOperations } from "../context/OperationsContext";
+import { useEnvironment } from "../context/EnvironmentContext";
+import { shortenAddress } from "../services/metamask";
 import { Settings2, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
 import InterLogo from "./InterLogo";
-import CarteiraControles from "./CarteiraControles";
+import WalletControls from "./WalletControls";
 
 export default function Header() {
-  const { notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
-  const { demonstracao, limites, limiteOperador, setCarteiraDemo } = useAmbiente();
-  const [dropdownAberto, setDropdownAberto] = useState(false);
-  const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
-  const [modoEscuro, setModoEscuro] = useState(() => window.localStorage.getItem("inter-theme") === "dark");
+  const { notifications, markNotificationsRead } = useOperations();
+  const { demo, limits, operatorLimit, setDemoWallet } = useEnvironment();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem("inter-theme") === "dark");
   const navRef = useRef(null);
   const abaRefs = useRef([]);
-  const [indicador, setIndicador] = useState({ left: 0, width: 0 });
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
   useEffect(() => {
-    document.documentElement.dataset.theme = modoEscuro ? "dark" : "light";
-    window.localStorage.setItem("inter-theme", modoEscuro ? "dark" : "light");
-  }, [modoEscuro]);
+    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+    window.localStorage.setItem("inter-theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
-  const abas = [
+  const tabs = [
     { to: "/mesa", label: "Mesa de Operações", curta: "Mesa" },
     { to: "/minhas-ofertas", label: "Minhas ofertas", curta: "Minhas" },
     { to: "/historico", label: "Histórico", curta: "Histórico" },
   ];
-  const idDetalhe = pathname.startsWith("/operacoes/") ? pathname.split("/").at(-1) : null;
-  const abaAtiva = idDetalhe ? 0 : abas.findIndex(({ to }) => to === pathname);
-  const naoLidas = notificacoes.filter((item) => !item.lida).length;
+  const detailId = pathname.startsWith("/operacoes/") ? pathname.split("/").at(-1) : null;
+  const activeTab = detailId ? 0 : tabs.findIndex(({ to }) => to === pathname);
+  const unreadCount = notifications.filter((item) => !item.read).length;
 
   useLayoutEffect(() => {
     const nav = navRef.current;
-    const aba = abaRefs.current[abaAtiva];
-    if (!nav || !aba) return;
+    const tab = abaRefs.current[activeTab];
+    if (!nav || !tab) return;
 
-    const medir = () => setIndicador({ left: aba.offsetLeft, width: aba.offsetWidth });
-    medir();
-    const observer = new ResizeObserver(medir);
+    const measure = () => setIndicator({ left: tab.offsetLeft, width: tab.offsetWidth });
+    measure();
+    const observer = new ResizeObserver(measure);
     observer.observe(nav);
-    observer.observe(aba);
+    observer.observe(tab);
     return () => observer.disconnect();
-  }, [abaAtiva]);
+  }, [activeTab]);
 
-  function alternarNotificacoes() {
-    setDropdownAberto(false);
-    setNotificacoesAbertas((abertas) => !abertas);
-    if (!notificacoesAbertas) marcarNotificacoesComoLidas();
+  function toggleNotifications() {
+    setDropdownOpen(false);
+    setNotificationsOpen((abertas) => !abertas);
+    if (!notificationsOpen) markNotificationsRead();
   }
 
   return (
@@ -68,14 +68,14 @@ export default function Header() {
 
         {/* Centro: Abas de navegação */}
         <nav ref={navRef} className="relative order-3 flex h-12 w-full items-stretch justify-center gap-2 border-b border-gray-200 sm:gap-4 md:order-none md:h-16 md:w-auto md:gap-3 lg:gap-5">
-          {abas.map(({ to, label, curta }, index) => (
+          {tabs.map(({ to, label, curta }, index) => (
             <NavLink
               key={to}
               to={to}
               ref={(node) => { abaRefs.current[index] = node; }}
               className={() =>
                 `inline-flex h-full items-center justify-center px-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none ${
-                  abaAtiva === index
+                  activeTab === index
                     ? "text-inter-orange"
                     : "text-gray-500 hover:text-gray-800"
                 }`
@@ -85,27 +85,27 @@ export default function Header() {
               <span className="hidden lg:inline">{label}</span>
             </NavLink>
           ))}
-          {abaAtiva >= 0 && <span aria-hidden="true" className="pointer-events-none absolute bottom-[-2px] h-1 rounded-full bg-inter-orange transition-[left,width] duration-300 ease-in-out motion-reduce:transition-none" style={{ left: indicador.left, width: indicador.width }} />}
+          {activeTab >= 0 && <span aria-hidden="true" className="pointer-events-none absolute bottom-[-2px] h-1 rounded-full bg-inter-orange transition-[left,width] duration-300 ease-in-out motion-reduce:transition-none" style={{ left: indicator.left, width: indicator.width }} />}
         </nav>
 
         {/* Lado Direito: Notificações e seletor de banco */}
         <div className="relative flex h-16 items-center gap-2">
-          <CarteiraControles compacto />
+          <WalletControls compact />
           <button
             type="button"
-            onClick={alternarNotificacoes}
-            aria-label={`Notificações${naoLidas ? `, ${naoLidas} não lidas` : ""}`}
-            aria-expanded={notificacoesAbertas}
+            onClick={toggleNotifications}
+            aria-label={`Notificações${unreadCount ? `, ${unreadCount} não lidas` : ""}`}
+            aria-expanded={notificationsOpen}
             className="relative flex h-9 w-9 cursor-pointer items-center justify-center text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inter-orange"
           >
             <Bell className="h-5 w-5" aria-hidden="true" />
-            {naoLidas > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-inter-orange" aria-hidden="true" />}
+            {unreadCount > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-inter-orange" aria-hidden="true" />}
           </button>
 
           <button
             type="button"
-            onClick={() => { setNotificacoesAbertas(false); setDropdownAberto((prev) => !prev); }}
-            aria-expanded={dropdownAberto}
+            onClick={() => { setNotificationsOpen(false); setDropdownOpen((prev) => !prev); }}
+            aria-expanded={dropdownOpen}
             aria-haspopup="menu"
             aria-label="Abrir configurações"
             title="Configurações"
@@ -116,28 +116,28 @@ export default function Header() {
 
         </div>
       </div>
-      {notificacoesAbertas && (
+      {notificationsOpen && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setNotificacoesAbertas(false)} aria-hidden="true" />
+          <div className="fixed inset-0 z-30" onClick={() => setNotificationsOpen(false)} aria-hidden="true" />
           <div className="absolute right-4 top-full z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:right-6 lg:right-8">
             <div className="border-b border-gray-100 px-4 py-3 text-sm font-semibold text-gray-900">Notificações</div>
             <div className="max-h-80 overflow-y-auto">
-              {notificacoes.length === 0 ? (
+              {notifications.length === 0 ? (
                 <p className="px-4 py-6 text-center text-xs text-gray-500">Nenhuma notificação por enquanto.</p>
-              ) : notificacoes.map((item) => {
-                const Icon = item.tipo === "sucesso" ? CheckCircle2 : item.tipo === "negada" ? XCircle : item.tipo === "aviso" ? Ban : Info;
-                const cor = item.tipo === "sucesso" ? "text-emerald-600" : item.tipo === "negada" ? "text-rose-600" : item.tipo === "aviso" ? "text-amber-600" : "text-gray-500";
+              ) : notifications.map((item) => {
+                const Icon = item.type === "sucesso" ? CheckCircle2 : item.type === "negada" ? XCircle : item.type === "aviso" ? Ban : Info;
+                const color = item.type === "sucesso" ? "text-emerald-600" : item.type === "negada" ? "text-rose-600" : item.type === "aviso" ? "text-amber-600" : "text-gray-500";
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => { setNotificacoesAbertas(false); if (item.rawId) navigate(`/operacoes/${item.rawId}`); }}
+                    onClick={() => { setNotificationsOpen(false); if (item.rawId) navigate(`/operacoes/${item.rawId}`); }}
                     className="flex w-full cursor-pointer items-start gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50"
                   >
-                    <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${cor}`} aria-hidden="true" />
+                    <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${color}`} aria-hidden="true" />
                     <span className="min-w-0">
-                      <span className="block text-xs font-medium text-gray-800">{item.mensagem}</span>
-                      <span className="mt-1 block text-[11px] text-gray-400">{new Date(item.hora).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                      <span className="block text-xs font-medium text-gray-800">{item.message}</span>
+                      <span className="mt-1 block text-[11px] text-gray-400">{new Date(item.time).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                     </span>
                   </button>
                 );
@@ -146,43 +146,43 @@ export default function Header() {
           </div>
         </>
       )}
-      {dropdownAberto && (
+      {dropdownOpen && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setDropdownAberto(false)} aria-hidden="true" />
+          <div className="fixed inset-0 z-30" onClick={() => setDropdownOpen(false)} aria-hidden="true" />
           <div className="absolute right-4 top-full z-40 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl sm:right-6 lg:right-8">
             <button
               type="button"
-              onClick={() => { setDropdownAberto(false); navigate("/perfil"); }}
+              onClick={() => { setDropdownOpen(false); navigate("/perfil"); }}
               className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs transition-colors hover:bg-gray-50 ${pathname === "/perfil" ? "font-semibold text-inter-orange" : "text-gray-700"}`}
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               <span>Perfil</span>
             </button>
-            {demonstracao && <div className="border-t border-gray-100 px-3 py-2 text-[11px] font-semibold text-gray-500">Operar como (demonstração)</div>}
-            {demonstracao && limites.map((item) => (
-              <button key={item.wallet} type="button" onClick={() => { setCarteiraDemo(item.wallet); setDropdownAberto(false); }} className={`w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-gray-50 ${limiteOperador?.wallet === item.wallet ? "font-semibold text-inter-orange" : "text-gray-700"}`}>
-                {item.institution?.name ?? "Instituição"} <span className="font-mono text-[10px]">{abreviarEndereco(item.wallet)}</span>
+            {demo && <div className="border-t border-gray-100 px-3 py-2 text-[11px] font-semibold text-gray-500">Operar como (demonstração)</div>}
+            {demo && limits.map((item) => (
+              <button key={item.wallet} type="button" onClick={() => { setDemoWallet(item.wallet); setDropdownOpen(false); }} className={`w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-gray-50 ${operatorLimit?.wallet === item.wallet ? "font-semibold text-inter-orange" : "text-gray-700"}`}>
+                {item.institution?.name ?? "Instituição"} <span className="font-mono text-[10px]">{shortenAddress(item.wallet)}</span>
               </button>
             ))}
             <button
               type="button"
               role="switch"
-              aria-checked={modoEscuro}
-              onClick={() => setModoEscuro((ativo) => !ativo)}
+              aria-checked={darkMode}
+              onClick={() => setDarkMode((active) => !active)}
               className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-left text-xs text-gray-700 transition-colors hover:bg-gray-50"
             >
               <span className="flex items-center gap-2">
-                {modoEscuro ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+                {darkMode ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
                 <span>Modo escuro</span>
               </span>
-              <span className={`relative h-5 w-9 rounded-full transition-colors ${modoEscuro ? "bg-inter-orange" : "bg-gray-300"}`} aria-hidden="true">
-                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[#fff] shadow-xs transition-transform ${modoEscuro ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+              <span className={`relative h-5 w-9 rounded-full transition-colors ${darkMode ? "bg-inter-orange" : "bg-gray-300"}`} aria-hidden="true">
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[#fff] shadow-xs transition-transform ${darkMode ? "translate-x-[18px]" : "translate-x-0.5"}`} />
               </span>
             </button>
             <div className="my-1 border-t border-gray-100" />
             <button
               type="button"
-              onClick={() => { setDropdownAberto(false); navigate("/"); }}
+              onClick={() => { setDropdownOpen(false); navigate("/"); }}
               className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs text-rose-600 transition-colors hover:bg-rose-50"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />

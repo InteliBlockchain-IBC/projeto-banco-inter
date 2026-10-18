@@ -1,21 +1,21 @@
 ﻿import { Outlet } from "react-router-dom";
 import Header from "./Header";
-import CarteiraAviso from "./CarteiraAviso";
-import FonteDadosAviso from "./FonteDadosAviso";
-import NovaOfertaModal from "./modals/NovaOfertaApiModal";
-import { useOperacoes } from "../context/OperacoesContext";
+import WalletNotice from "./WalletNotice";
+import DataSourceNotice from "./DataSourceNotice";
+import NewOfferModal from "./modals/NewApiOfferModal";
+import { useOperations } from "../context/OperationsContext";
 
 export default function Layout() {
-  const { modalNovaOfertaAberto, setModalNovaOfertaAberto } = useOperacoes();
+  const { newOfferModalOpen, setNewOfferModalOpen } = useOperations();
   return (
     <div className="min-h-screen bg-[var(--bg-page)] text-gray-900 flex flex-col font-sans">
       <Header />
-      <CarteiraAviso />
-      <FonteDadosAviso />
+      <WalletNotice />
+      <DataSourceNotice />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Outlet />
       </main>
-      {modalNovaOfertaAberto && <NovaOfertaModal isOpen onClose={() => setModalNovaOfertaAberto(false)} />}
+      {newOfferModalOpen && <NewOfferModal isOpen onClose={() => setNewOfferModalOpen(false)} />}
     </div>
   );
 }
