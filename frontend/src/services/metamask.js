@@ -3,23 +3,23 @@ export const METAMASK_DOWNLOAD_URL = "https://metamask.io/download/";
 
 const DISCONNECTED_KEY = "inter-wallet-disconnected";
 
-export function abreviarEndereco(endereco) {
+export function shortenAddress(endereco) {
   return endereco ? `${endereco.slice(0, 6)}…${endereco.slice(-4)}` : "Não conectada";
 }
 
-export function nomeRede(chainId) {
+export function networkName(chainId) {
   if (!chainId) return "Sem conexão";
   if (chainId === SEPOLIA_CHAIN_ID) return "Sepolia";
   if (chainId === "0x1") return "Ethereum Mainnet";
   return `Rede ${Number.parseInt(chainId, 16)}`;
 }
 
-function codigoErro(erro) {
-  return Number(erro?.data?.originalError?.code ?? erro?.code);
+function errorCode(error) {
+  return Number(error?.data?.originalError?.code ?? error?.code);
 }
 
-function mensagemErro(erro) {
-  switch (codigoErro(erro)) {
+function errorMessage(error) {
+  switch (errorCode(error)) {
     case 4001: return "Solicitação recusada na MetaMask. Você pode tentar novamente.";
     case -32002: return "Há uma solicitação pendente. Abra a MetaMask para concluir ou cancelar.";
     case 4100: return "Autorize o acesso à sua conta na MetaMask.";
@@ -31,157 +31,157 @@ function mensagemErro(erro) {
 
 // Mantém conta e rede sincronizadas com a extensão. A assinatura das operações
 // usa o provider diretamente, sem armazenar chaves no frontend.
-export function criarConexaoMetaMask(browser = window) {
-  let estado = { conta: null, chainId: null, disponivel: false, pendente: null, erro: null };
+export function createMetaMaskConnection(browser = window) {
+  let state = { account: null, chainId: null, available: false, pending: null, error: null };
   let provider = null;
-  let ativa = false;
-  let geracao = 0;
-  let leitura = 0;
-  let removerEventos = () => {};
-  const assinantes = new Set();
-  let desconectadaLocalmente = false;
+  let active = false;
+  let generation = 0;
+  let readVersion = 0;
+  let removeEventListeners = () => {};
+  const subscribers = new Set();
+  let locallyDisconnected = false;
   try {
-    desconectadaLocalmente = browser.sessionStorage.getItem(DISCONNECTED_KEY) === "true";
+    locallyDisconnected = browser.sessionStorage.getItem(DISCONNECTED_KEY) === "true";
   } catch { /* A conexão também funciona com o armazenamento desativado. */ }
 
-  function atualizar(dados) {
-    estado = { ...estado, ...dados };
-    assinantes.forEach((assinante) => assinante());
+  function update(data) {
+    state = { ...state, ...data };
+    subscribers.forEach((subscriber) => subscriber());
   }
 
-  function lembrarDesconexao(valor) {
-    desconectadaLocalmente = valor;
+  function rememberDisconnect(value) {
+    locallyDisconnected = value;
     try {
-      if (valor) browser.sessionStorage.setItem(DISCONNECTED_KEY, "true");
+      if (value) browser.sessionStorage.setItem(DISCONNECTED_KEY, "true");
       else browser.sessionStorage.removeItem(DISCONNECTED_KEY);
     } catch { /* Preferência mantida em memória. */ }
   }
 
-  async function sincronizar() {
-    if (!provider || desconectadaLocalmente) return;
-    const atual = provider;
-    const versao = ++leitura;
-    const ciclo = geracao;
+  async function sync() {
+    if (!provider || locallyDisconnected) return;
+    const current = provider;
+    const version = ++readVersion;
+    const ciclo = generation;
     try {
-      const [contas, chainId] = await Promise.all([
-        atual.request({ method: "eth_accounts" }),
-        atual.request({ method: "eth_chainId" }),
+      const [accounts, chainId] = await Promise.all([
+        current.request({ method: "eth_accounts" }),
+        current.request({ method: "eth_chainId" }),
       ]);
-      if (ativa && atual === provider && ciclo === geracao && versao === leitura) {
-        atualizar({ conta: contas[0] ?? null, chainId, erro: null });
+      if (active && current === provider && ciclo === generation && version === readVersion) {
+        update({ account: accounts[0] ?? null, chainId, error: null });
       }
-    } catch (erro) {
-      if (ativa && atual === provider && ciclo === geracao && versao === leitura) {
-        atualizar({ conta: null, chainId: null, erro: mensagemErro(erro) });
+    } catch (error) {
+      if (active && current === provider && ciclo === generation && version === readVersion) {
+        update({ account: null, chainId: null, error: errorMessage(error) });
       }
     }
   }
 
-  function selecionarProvider(novo) {
-    if (!novo?.request || (provider === novo && estado.disponivel)) return;
+  function selectProvider(novo) {
+    if (!novo?.request || (provider === novo && state.available)) return;
     // Não substitui uma carteira em uso por um anúncio tardio.
-    if (provider && (estado.conta || estado.pendente)) return;
-    removerEventos();
-    leitura += 1;
+    if (provider && (state.account || state.pending)) return;
+    removeEventListeners();
+    readVersion += 1;
     provider = novo;
-    const eventos = {
-      accountsChanged: (contas) => {
-        leitura += 1;
-        if (!desconectadaLocalmente) atualizar({ conta: contas[0] ?? null, erro: null });
-        void sincronizar();
+    const events = {
+      accountsChanged: (accounts) => {
+        readVersion += 1;
+        if (!locallyDisconnected) update({ account: accounts[0] ?? null, error: null });
+        void sync();
       },
       chainChanged: (chainId) => {
-        leitura += 1;
-        atualizar({ chainId, erro: null });
-        void sincronizar();
+        readVersion += 1;
+        update({ chainId, error: null });
+        void sync();
       },
-      connect: () => { void sincronizar(); },
+      connect: () => { void sync(); },
       disconnect: () => {
-        geracao += 1;
-        leitura += 1;
-        atualizar({ conta: null, chainId: null, pendente: null, erro: "A MetaMask perdeu a conexão com a rede. Recarregue a página para reconectar." });
+        generation += 1;
+        readVersion += 1;
+        update({ account: null, chainId: null, pending: null, error: "A MetaMask perdeu a conexão com a rede. Recarregue a página para reconectar." });
       },
     };
-    Object.entries(eventos).forEach(([nome, handler]) => novo.on?.(nome, handler));
-    removerEventos = () => Object.entries(eventos).forEach(([nome, handler]) => novo.removeListener?.(nome, handler));
-    atualizar({ disponivel: true });
-    void sincronizar();
+    Object.entries(events).forEach(([name, handler]) => novo.on?.(name, handler));
+    removeEventListeners = () => Object.entries(events).forEach(([name, handler]) => novo.removeListener?.(name, handler));
+    update({ available: true });
+    void sync();
   }
 
-  function detectarLegado() {
+  function detectLegacyProvider() {
     const injetado = browser.ethereum;
     const metaMask = injetado?.providers?.find((item) => item.isMetaMask)
       ?? (injetado?.isMetaMask ? injetado : null);
-    if (metaMask && !provider) selecionarProvider(metaMask);
+    if (metaMask && !provider) selectProvider(metaMask);
   }
 
-  function anunciar(evento) {
-    if (evento.detail?.info?.rdns === "io.metamask") selecionarProvider(evento.detail.provider);
+  function handleProviderAnnouncement(event) {
+    if (event.detail?.info?.rdns === "io.metamask") selectProvider(event.detail.provider);
   }
 
-  function iniciar() {
-    ativa = true;
-    geracao += 1;
+  function start() {
+    active = true;
+    generation += 1;
     // EIP-6963 seleciona a MetaMask mesmo quando há outras extensões instaladas.
-    browser.addEventListener("eip6963:announceProvider", anunciar);
-    browser.addEventListener("ethereum#initialized", detectarLegado);
+    browser.addEventListener("eip6963:announceProvider", handleProviderAnnouncement);
+    browser.addEventListener("ethereum#initialized", detectLegacyProvider);
     browser.dispatchEvent(new Event("eip6963:requestProvider"));
-    detectarLegado();
+    detectLegacyProvider();
     return () => {
-      ativa = false;
-      geracao += 1;
-      leitura += 1;
-      browser.removeEventListener("eip6963:announceProvider", anunciar);
-      browser.removeEventListener("ethereum#initialized", detectarLegado);
-      removerEventos();
+      active = false;
+      generation += 1;
+      readVersion += 1;
+      browser.removeEventListener("eip6963:announceProvider", handleProviderAnnouncement);
+      browser.removeEventListener("ethereum#initialized", detectLegacyProvider);
+      removeEventListeners();
       provider = null;
-      atualizar({ disponivel: false, pendente: null });
+      update({ available: false, pending: null });
     };
   }
 
-  async function executar(tipo, acao) {
-    if (estado.pendente) return false;
+  async function execute(type, action) {
+    if (state.pending) return false;
     browser.dispatchEvent(new Event("eip6963:requestProvider"));
-    detectarLegado();
+    detectLegacyProvider();
     if (!provider) {
-      atualizar({ erro: "MetaMask não encontrada. Instale ou habilite a extensão neste navegador e recarregue a página." });
+      update({ error: "MetaMask não encontrada. Instale ou habilite a extensão neste navegador e recarregue a página." });
       return false;
     }
-    const ciclo = geracao;
-    leitura += 1;
-    atualizar({ pendente: tipo, erro: null });
+    const ciclo = generation;
+    readVersion += 1;
+    update({ pending: type, error: null });
     try {
-      await acao(provider);
-      if (!ativa || ciclo !== geracao) return false;
-      if (tipo === "conectar") lembrarDesconexao(false);
-      await sincronizar();
-      return ativa && ciclo === geracao && !estado.erro;
-    } catch (erro) {
-      if (ativa && ciclo === geracao) atualizar({ erro: mensagemErro(erro) });
+      await action(provider);
+      if (!active || ciclo !== generation) return false;
+      if (type === "conectar") rememberDisconnect(false);
+      await sync();
+      return active && ciclo === generation && !state.error;
+    } catch (error) {
+      if (active && ciclo === generation) update({ error: errorMessage(error) });
       return false;
     } finally {
-      if (ativa && ciclo === geracao) atualizar({ pendente: null });
+      if (active && ciclo === generation) update({ pending: null });
     }
   }
 
   return {
-    iniciar,
-    getSnapshot: () => estado,
-    subscribe: (assinante) => {
-      assinantes.add(assinante);
-      return () => assinantes.delete(assinante);
+    start,
+    getSnapshot: () => state,
+    subscribe: (subscriber) => {
+      subscribers.add(subscriber);
+      return () => subscribers.delete(subscriber);
     },
-    getProvider: () => estado.conta ? provider : null,
-    conectar: () => executar("conectar", async (atual) => {
-      const contas = await atual.request({ method: "eth_requestAccounts" });
-      if (!contas.length) throw new Error("Nenhuma conta autorizada");
+    getProvider: () => state.account ? provider : null,
+    connect: () => execute("conectar", async (current) => {
+      const accounts = await current.request({ method: "eth_requestAccounts" });
+      if (!accounts.length) throw new Error("Nenhuma conta autorizada");
     }),
-    trocarParaSepolia: () => executar("rede", async (atual) => {
+    switchToSepolia: () => execute("rede", async (current) => {
       try {
-        await atual.request({ method: "wallet_switchEthereumChain", params: [{ chainId: SEPOLIA_CHAIN_ID }] });
-      } catch (erro) {
-        if (codigoErro(erro) !== 4902) throw erro;
-        await atual.request({
+        await current.request({ method: "wallet_switchEthereumChain", params: [{ chainId: SEPOLIA_CHAIN_ID }] });
+      } catch (error) {
+        if (errorCode(error) !== 4902) throw error;
+        await current.request({
           method: "wallet_addEthereumChain",
           params: [{
             chainId: SEPOLIA_CHAIN_ID,
@@ -191,15 +191,15 @@ export function criarConexaoMetaMask(browser = window) {
             blockExplorerUrls: ["https://sepolia.etherscan.io"],
           }],
         });
-        await atual.request({ method: "wallet_switchEthereumChain", params: [{ chainId: SEPOLIA_CHAIN_ID }] });
+        await current.request({ method: "wallet_switchEthereumChain", params: [{ chainId: SEPOLIA_CHAIN_ID }] });
       }
     }),
-    desconectar: () => {
-      geracao += 1;
-      leitura += 1;
-      lembrarDesconexao(true);
-      atualizar({ conta: null, chainId: null, pendente: null, erro: null });
+    disconnect: () => {
+      generation += 1;
+      readVersion += 1;
+      rememberDisconnect(true);
+      update({ account: null, chainId: null, pending: null, error: null });
     },
-    limparErro: () => atualizar({ erro: null }),
+    clearError: () => update({ error: null }),
   };
 }

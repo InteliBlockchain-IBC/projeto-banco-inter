@@ -16,9 +16,9 @@ A conexão por si só não assina nem autentica o operador. Com um contrato real
 ## Pontos de integração
 
 - `src/services/metamask.js`: descoberta, estado da conexão e solicitação de troca de rede.
-- `src/context/CarteiraContext.jsx`: `useCarteira()` disponibiliza `conta`, `chainId`, `conectada`, `naSepolia`, `conectar`, `desconectar`, `trocarParaSepolia` e `getProvider` para as operações já integradas.
+- `src/context/WalletContext.jsx`: `useWallet()` disponibiliza `account`, `chainId`, `connected`, `isSepolia`, `connect`, `disconnect`, `switchToSepolia` e `getProvider` para as operações já integradas.
 - `src/services/brlt.js`: consulta saldo e autorização de BRLt e envia `approve` antes da oferta, quando necessário.
-- `getProvider()` retorna o provider EIP-1193 somente enquanto há uma conta conectada. O serviço `src/services/transacoes.js` valida conta e rede antes do envio, exibe o hash e aguarda o recibo real antes de marcar a transação como confirmada. A oferta aparece na lista quando o backend indexa o evento.
+- `getProvider()` retorna o provider EIP-1193 somente enquanto há uma conta conectada. O serviço `src/services/transactions.js` valida conta e rede antes do envio, exibe o hash e aguarda o recibo real antes de marcar a transação como confirmada. A oferta aparece na lista quando o backend indexa o evento.
 - Sepolia usa chain ID `11155111` (`0xaa36a7`). O RPC público é usado somente ao adicionar a rede à carteira: `https://ethereum-sepolia-rpc.publicnode.com`.
 
 Referências: [descoberta EIP-6963](https://eips.ethereum.org/EIPS/eip-6963), [API do provider MetaMask](https://docs.metamask.io/metamask-connect/evm/reference/provider-api/).

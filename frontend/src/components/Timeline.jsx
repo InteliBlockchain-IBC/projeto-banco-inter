@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-const ETAPAS = ["Ofertada", "Aceita", "Liquidada"];
+const STAGES = ["Ofertada", "Aceita", "Liquidada"];
 
 export default function Timeline({ status }) {
   if (status === "Cancelada" || status === "Negada") {
@@ -21,7 +21,7 @@ export default function Timeline({ status }) {
     );
   }
 
-  const indiceAtual = ETAPAS.indexOf(status);
+  const currentIndex = STAGES.indexOf(status);
 
   return (
     <div className="my-5">
@@ -31,34 +31,34 @@ export default function Timeline({ status }) {
           className="absolute left-4 top-3.5 h-0.5 bg-inter-orange -z-0 transition-all duration-300"
           style={{
             width:
-              indiceAtual === 0 ? "0%" : indiceAtual === 1 ? "50%" : "100%",
+              currentIndex === 0 ? "0%" : currentIndex === 1 ? "50%" : "100%",
           }}
         />
 
-        {ETAPAS.map((etapa, i) => {
-          const feita = i <= indiceAtual;
-          const atual = i === indiceAtual;
+        {STAGES.map((stage, i) => {
+          const completed = i <= currentIndex;
+          const current = i === currentIndex;
           return (
-            <div key={etapa} className="flex flex-col items-center relative z-10">
+            <div key={stage} className="flex flex-col items-center relative z-10">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shadow-2xs transition-colors ${
-                  feita
+                  completed
                     ? "bg-inter-orange text-white"
                     : "bg-gray-100 text-gray-400 border border-gray-200"
                 }`}
               >
-                {feita ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : i + 1}
+                {completed ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : i + 1}
               </div>
               <span
                 className={`text-[11px] mt-1.5 font-medium ${
-                  atual
+                  current
                     ? "text-gray-900 font-bold"
-                    : feita
+                    : completed
                     ? "text-gray-700"
                     : "text-gray-400"
                 }`}
               >
-                {etapa}
+                {stage}
               </span>
             </div>
           );

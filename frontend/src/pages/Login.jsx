@@ -8,13 +8,13 @@ import InterLogo from "../components/InterLogo";
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("operador@bancoa.com.br");
-  const [senha, setSenha] = useState("••••••••");
-  const [carregando, setCarregando] = useState(false);
+  const [password, setPassword] = useState("••••••••");
+  const [loading, setLoading] = useState(false);
 
   // TODO: substituir a navegação demonstrativa por autenticação no backend quando houver contrato de sessão.
-  function handleEntrar(e) {
+  function handleLogin(e) {
     e.preventDefault();
-    setCarregando(true);
+    setLoading(true);
     setTimeout(() => {
       navigate("/mesa");
     }, 300);
@@ -74,7 +74,7 @@ export default function Login() {
                 </p>
               </div>
 
-              <form onSubmit={handleEntrar} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <Input
                   label="Email corporativo"
                   id="email"
@@ -91,8 +91,8 @@ export default function Login() {
                     id="senha"
                     type="password"
                     placeholder="••••••••"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                   <div className="flex justify-end mt-1.5">
@@ -110,10 +110,10 @@ export default function Login() {
                   type="submit"
                   variant="primary"
                   className="w-full py-2.5 mt-2"
-                  disabled={carregando}
+                  disabled={loading}
                 >
-                  {carregando ? "Acessando..." : "Entrar na Mesa"}
-                  {!carregando && <ArrowRight className="w-4 h-4" />}
+                  {loading ? "Acessando..." : "Entrar na Mesa"}
+                  {!loading && <ArrowRight className="w-4 h-4" />}
                 </Button>
               </form>
             </div>
