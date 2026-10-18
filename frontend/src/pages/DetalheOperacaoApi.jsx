@@ -14,8 +14,10 @@ import {
 import StatusBadge from "../components/StatusBadge";
 import Timeline from "../components/Timeline";
 import HashTransacao from "../components/HashTransacao";
+import IndexacaoPendenteAviso from "../components/IndexacaoPendenteAviso";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import Modal from "../components/ui/Modal";
 import EstadoCarregando from "../components/ui/EstadoCarregando";
 import EstadoErro from "../components/ui/EstadoErro";
 import { useOperacoes } from "../context/OperacoesContext";
@@ -196,6 +198,7 @@ export default function DetalheOperacaoApi({ id }) {
   const { conta, naSepolia, getProvider } = useCarteira();
   const { demonstracao, carteiraAtiva, recarregar: recarregarAmbiente } = useAmbiente();
   const [transacao, setTransacao] = useState({ fase: "idle", hash: null, erro: null });
+  const [avisoIndexacaoFechado, setAvisoIndexacaoFechado] = useState(false);
   const [confirmarAcao, setConfirmarAcao] = useState(null);
   const {
     status,
@@ -211,6 +214,7 @@ export default function DetalheOperacaoApi({ id }) {
 
   async function confirmarTransacao(acao, operacao) {
     setConfirmarAcao(null);
+    setAvisoIndexacaoFechado(false);
     setTransacao({ fase: "preparando", hash: null, erro: null });
     try {
       // A demo recebe um hash sintético da API; o fluxo real envia pela carteira.
@@ -447,6 +451,15 @@ export default function DetalheOperacaoApi({ id }) {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={transacao.fase === "confirmada" && Boolean(transacao.sincronizando) && !avisoIndexacaoFechado}
+        onClose={() => setAvisoIndexacaoFechado(true)}
+        title="Transação confirmada"
+        subtitle="Aguardando atualização da operação"
+        maxWidth="max-w-md"
+      >
+        <IndexacaoPendenteAviso hash={transacao.hash} onClose={() => setAvisoIndexacaoFechado(true)} />
+      </Modal>
     </div>
   );
 }

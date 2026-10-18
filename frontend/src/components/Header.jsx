@@ -2,18 +2,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useOperacoes } from "../context/OperacoesContext";
 import { useAmbiente } from "../context/AmbienteContext";
-import { useCarteira } from "../context/CarteiraContext";
 import { abreviarEndereco } from "../services/metamask";
-import { ChevronDown, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
+import { Settings2, LogOut, Bell, CheckCircle2, XCircle, Ban, Info, UserRound, Moon, Sun } from "lucide-react";
 import InterLogo from "./InterLogo";
 import CarteiraControles from "./CarteiraControles";
 
 export default function Header() {
   const { notificacoes, marcarNotificacoesComoLidas } = useOperacoes();
-  const { demonstracao, limites, limiteOperador, status, setCarteiraDemo } = useAmbiente();
-  const { conta } = useCarteira();
-  const instituicaoAtual = limiteOperador?.institution?.name
-    ?? (!demonstracao && status === "ok" && conta ? "Carteira não cadastrada" : "Instituição não identificada");
+  const { demonstracao, limites, limiteOperador, setCarteiraDemo } = useAmbiente();
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [modoEscuro, setModoEscuro] = useState(() => window.localStorage.getItem("inter-theme") === "dark");
@@ -110,13 +106,12 @@ export default function Header() {
             type="button"
             onClick={() => { setNotificacoesAbertas(false); setDropdownAberto((prev) => !prev); }}
             aria-expanded={dropdownAberto}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200/90 rounded-lg transition-all cursor-pointer"
+            aria-haspopup="menu"
+            aria-label="Abrir configurações"
+            title="Configurações"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200/90 bg-gray-50 text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-inter-orange cursor-pointer"
           >
-            <div className="w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[10px] font-bold">
-              {instituicaoAtual.slice(0, 1)}
-            </div>
-            <span>{instituicaoAtual}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            <Settings2 className="h-5 w-5" aria-hidden="true" />
           </button>
 
         </div>

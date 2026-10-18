@@ -1,6 +1,14 @@
 # Mesa de operações interfinanceiras
 
+## Integrantes
+
+- [Ana Célia Augusta Santos do Amaral](https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/)
+- [Gabriel Rodrigues](https://www.linkedin.com/in/rodriguesgabrieleng)
+- [José Guilherme Gonçalves Maia](https://www.linkedin.com/in/jos%C3%A9-guilherme-gon%C3%A7alves-maia/)
+
 Frontend da prova de conceito de crédito interfinanceiro do projeto Inteli Blockchain com o Banco Inter. A aplicação reúne ofertas, limites, histórico e detalhes das operações. Há dois fluxos: uma demonstração com dados sintéticos e a integração experimental com contrato na Sepolia.
+
+**Vídeo de demonstração:** [assista ao fluxo completo das telas](https://youtu.be/9ptm0IFnUX4).
 
 ## Baixar e executar
 
@@ -69,9 +77,3 @@ Com o backend apontando para um deployment real, conecte uma carteira cadastrada
 | `docs/` | [Documentação do projeto](docs/documentacao.md), [arquitetura](docs/architecture.md), carteira e UX. |
 
 O login é demonstrativo e não autentica o operador. A API fornece ofertas, limites, deployment e histórico. Favoritos e notificações são estados locais da interface. As listas de ofertas são atualizadas periodicamente.
-
-## Autores
-
-- [Ana Célia Augusta Santos do Amaral](https://www.linkedin.com/in/ana-c%C3%A9lia-amaral/)
-- [Gabriel Rodrigues](https://www.linkedin.com/in/rodriguesgabrieleng)
-- [José Guilherme Gonçalves Maia](https://www.linkedin.com/in/jos%C3%A9-guilherme-gon%C3%A7alves-maia/)

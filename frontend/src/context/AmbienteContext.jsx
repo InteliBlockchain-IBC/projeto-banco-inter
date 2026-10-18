@@ -27,6 +27,26 @@ export function AmbienteProvider({ children }) {
     return () => controlador.abort();
   }, [versao]);
 
+  useEffect(() => {
+    if (!conta || estado.status !== "ok" ||
+        estado.deployment?.data?.contractAddress?.toLowerCase() === CONTRATO_SINTETICO ||
+        estado.limites.some((item) => item.wallet.toLowerCase() === conta.toLowerCase() && item.isRegistered)) {
+      return undefined;
+    }
+
+    const atualizar = () => {
+      if (document.visibilityState === "visible") setVersao((atual) => atual + 1);
+    };
+    const intervalo = window.setInterval(atualizar, 15000);
+    window.addEventListener("focus", atualizar);
+    document.addEventListener("visibilitychange", atualizar);
+    return () => {
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", atualizar);
+      document.removeEventListener("visibilitychange", atualizar);
+    };
+  }, [conta, estado]);
+
   function setCarteiraDemo(wallet) {
     setCarteiraDemoState(wallet);
     try { sessionStorage.setItem("inter-carteira-demo", wallet); } catch { /* Seleção disponível nesta sessão. */ }

@@ -9,7 +9,7 @@ export default function FonteDadosAviso() {
   if (!demonstracao && conta && !limiteOperador?.isRegistered) {
     return (
       <div role="alert" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-950">
-        <strong>Carteira não cadastrada.</strong> A conta {abreviarEndereco(conta)} não está habilitada como instituição neste contrato. Solicite o cadastro ao administrador para operar na Sepolia.
+        <strong>Cadastro ainda não localizado.</strong> A API ainda não encontrou a conta {abreviarEndereco(conta)}. Se o cadastro foi recente, aguarde a sincronização da Sepolia; caso contrário, confirme o endereço com o administrador.
       </div>
     );
   }

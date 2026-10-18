@@ -21,6 +21,8 @@ Uma oferta aceita passa diretamente para a liquidação no contrato; “aceita�
 
 ## O que há na aplicação?
 
+O [vídeo de demonstração](https://youtu.be/9ptm0IFnUX4) apresenta o fluxo completo das telas da aplicação.
+
 | Tela | Para que serve |
 | --- | --- |
 | Login | Entrada demonstrativa. Os campos não são validados por um serviço de autenticação. |
@@ -43,11 +45,10 @@ A demonstração serve para apresentar e explorar as telas. Ela não comprova um
 
 Hoje, a troca entre as duas APIs não aparece como controle na interface. Para iniciar a aplicação diretamente com os dados fictícios, configure o proxy conforme as instruções do [README](../README.md).
 
-## O que já foi implementado e o que falta?
+## O que já foi implementado
 
 O repositório contém as telas, integração com a API, conexão à MetaMask, envio e acompanhamento de transações, consulta de BRLt e testes automatizados dos serviços e funções de dados. `npm test`, `npm run lint` e `npm run build` passaram na revisão de 17/10/2026.
 
-Faltam ligar a seleção de ambiente à interface, substituir o login demonstrativo caso seja necessária autenticação real e registrar uma verificação manual completa do fluxo na Sepolia. Não há endereço de publicação ou vídeo de demonstração registrado neste repositório.
 
 ## Para continuar a leitura
 

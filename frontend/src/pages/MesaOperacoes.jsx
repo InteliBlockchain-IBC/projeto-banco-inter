@@ -110,7 +110,7 @@ export default function MesaOperacoes() {
         <StatCard
           label="Limite disponível"
           value={conta && limiteOperador ? formatarCentavos(limiteOperador.availableLimitCents) : "—"}
-          subvalue={!conta ? "Conecte a carteira" : erroAmbiente ? "Limite indisponível" : limiteOperador?.institution?.name ?? "Consultando limite"}
+          subvalue={!conta ? "Conecte a carteira" : erroAmbiente ? "Limite indisponível" : limiteOperador?.institution?.name ?? (limiteOperador?.isRegistered ? "Carteira cadastrada" : "Consultando limite")}
           icon={TrendingUp}
         />
         <StatCard
