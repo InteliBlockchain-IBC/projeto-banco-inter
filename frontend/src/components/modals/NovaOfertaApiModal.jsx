@@ -4,6 +4,7 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import CarteiraControles from "../CarteiraControles";
 import HashTransacao from "../HashTransacao";
+import IndexacaoPendenteAviso from "../IndexacaoPendenteAviso";
 import { useCarteira } from "../../context/CarteiraContext";
 import { useAmbiente } from "../../context/AmbienteContext";
 import { useOperacoes } from "../../context/OperacoesContext";
@@ -62,7 +63,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
     const termDays = Number(prazo);
     const limiteTomador = tomadores.find((item) => item.wallet === tomador);
     if (!demonstracao && !limiteOperador?.isRegistered) {
-      return setTransacao({ fase: "erro", erro: "Esta carteira não está cadastrada como instituição no contrato." });
+      return setTransacao({ fase: "erro", erro: "O cadastro desta carteira ainda não apareceu na API. Aguarde a sincronização e tente novamente." });
     }
     if (!tomador || !limiteTomador) return setTransacao({ fase: "erro", erro: "Selecione uma instituição tomadora." });
     if (!amountCents || BigInt(amountCents) > BigInt(limiteTomador.availableLimitCents)) {
@@ -107,10 +108,12 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={processando ? undefined : onClose} showClose={!processando} title="Nova oferta de crédito" subtitle={demonstracao ? "Publicação de demonstração no backend" : "A publicação exige assinatura na MetaMask"} maxWidth="max-w-md">
-      <form className="space-y-4 text-sm" onSubmit={enviar}>
+    <Modal isOpen={isOpen} onClose={processando ? undefined : onClose} showClose={!processando} title={transacao.fase === "confirmada" && transacao.sincronizando ? "Transação confirmada" : "Nova oferta de crédito"} subtitle={transacao.fase === "confirmada" && transacao.sincronizando ? "Aguardando atualização da oferta" : demonstracao ? "Publicação de demonstração no backend" : "A publicação exige assinatura na MetaMask"} maxWidth="max-w-md">
+      {transacao.fase === "confirmada" && transacao.sincronizando ? (
+        <IndexacaoPendenteAviso hash={transacao.hash} onClose={onClose} />
+      ) : <form className="space-y-4 text-sm" onSubmit={enviar}>
         {demonstracao ? <p className="break-all text-xs text-gray-600">Ofertante de demonstração: {carteiraAtiva}</p> : !conta || !naSepolia ? <CarteiraControles /> : <p className="break-all text-xs text-gray-600">Ofertante: {conta}</p>}
-        {!demonstracao && conta && statusAmbiente === "ok" && !limiteOperador?.isRegistered && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">Esta carteira não está cadastrada como instituição no contrato. Solicite o cadastro ao administrador antes de publicar uma oferta.</p>}
+        {!demonstracao && conta && statusAmbiente === "ok" && !limiteOperador?.isRegistered && <p role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">O cadastro desta carteira ainda não apareceu na API. Aguarde a sincronização da Sepolia ou confirme o endereço com o administrador.</p>}
         <label className="block text-xs font-medium text-gray-700">Instituição tomadora
           <select required value={tomador} onChange={(evento) => setTomador(evento.target.value)} disabled={processando || statusAmbiente !== "ok"} className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm">
             <option value="">Selecione</option>
@@ -155,7 +158,7 @@ export default function NovaOfertaApiModal({ isOpen, onClose }) {
           <Button variant="outline" onClick={onClose} disabled={processando}>Fechar</Button>
           <Button type="submit" disabled={!carteiraAtiva || (!demonstracao && (!naSepolia || brlt.status !== "ok" || !limiteOperador?.isRegistered)) || processando || Boolean(transacao.hash) || statusAmbiente !== "ok"}>{demonstracao ? "Publicar demonstração" : "Autorizar e publicar na Sepolia"}</Button>
         </div>
-      </form>
+      </form>}
     </Modal>
   );
 }

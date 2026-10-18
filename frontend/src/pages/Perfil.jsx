@@ -43,7 +43,7 @@ export default function Perfil() {
       {status === "erro" && <EstadoErro titulo="Não foi possível carregar o perfil" mensagem={erro?.message} onTentarNovamente={recarregar} />}
       {status === "ok" && carteiraAtiva && <>
         <Card className="space-y-4 p-6">
-          <h2 className="text-lg font-semibold text-gray-900">{limiteOperador?.institution?.name ?? "Instituição não cadastrada"}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{limiteOperador?.institution?.name ?? (limiteOperador?.isRegistered ? "Carteira cadastrada" : "Cadastro não localizado")}</h2>
           <div className="text-xs text-gray-600">Carteira: <HashTransacao valor={carteiraAtiva} tipo="endereco" /></div>
           {limiteOperador ? <>
             <div className="border-t border-gray-100 pt-4">
