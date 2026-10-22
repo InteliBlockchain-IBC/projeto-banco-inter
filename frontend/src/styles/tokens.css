@@ -1,0 +1,186 @@
+/*
+ * Design system da Mesa de Operações: tokens de cor, espaço, raio e tipografia.
+ * Gerado a partir dos tokens do Figma "Frontend-Projeto-Inter".
+ * Não editar valores à mão sem atualizar o Figma.
+ */
+
+:root {
+  /* Primitivos */
+  --ardosia-0: #FFFFFF;
+  --ardosia-50: #F3F5F8;
+  --ardosia-100: #EAEEF3;
+  --ardosia-200: #D3D9E1;
+  --ardosia-400: #788391;
+  --ardosia-500: #5A6573;
+  --ardosia-600: #4E5968;
+  --ardosia-950: #131A22;
+  --noite-0: #E6EBF1;
+  --noite-300: #A3AEBB;
+  --noite-400: #8893A1;
+  --noite-500: #6B7684;
+  --noite-700: #2A3440;
+  --noite-800: #1C232D;
+  --noite-850: #151B23;
+  --noite-900: #0D1117;
+  --laranja-300: #FF9E47;
+  --laranja-400: #FF8A1F;
+  --laranja-500: #FF7A00;
+  --laranja-700: #B34700;
+  --azul-50: #E6EEFB;
+  --azul-300: #8DB4F5;
+  --azul-400: #5B9BFF;
+  --azul-600: #0B5FD6;
+  --azul-700: #1C4FA0;
+  --azul-900: #15243B;
+  --violeta-50: #EFEAFD;
+  --violeta-300: #B9A6FA;
+  --violeta-700: #5B3CC4;
+  --violeta-900: #231C3D;
+  --petroleo-50: #E0F4F7;
+  --petroleo-300: #6FD0DF;
+  --petroleo-700: #0B6577;
+  --petroleo-900: #0F2A30;
+  --verde-50: #E3F4EA;
+  --verde-300: #6FD39E;
+  --verde-700: #106B40;
+  --verde-900: #11291D;
+  --cinza-50: #EDF0F3;
+  --cinza-700: #505A66;
+  --cinza-900: #1E252E;
+  --vermelho-50: #FCE8E6;
+  --vermelho-300: #F59A91;
+  --vermelho-700: #B0271D;
+  --vermelho-900: #35171A;
+  --ambar-50: #FFF3DC;
+  --ambar-300: #F2C063;
+  --ambar-700: #8A5300;
+  --ambar-900: #33240B;
+
+  /* Dimensões */
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 20px;
+  --espaco-6: 24px;
+  --espaco-8: 32px;
+  --espaco-10: 40px;
+  --espaco-12: 48px;
+  --espaco-16: 64px;
+  --raio-sm: 6px;
+  --raio-md: 8px;
+  --raio-lg: 14px;
+  --raio-pill: 999px;
+
+  /* Tipografia */
+  --fonte-display: "Archivo", system-ui, sans-serif;
+  --fonte-texto: "IBM Plex Sans", system-ui, sans-serif;
+  --fonte-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --tipo-valor-xl: 600 40px/44px var(--fonte-display);
+  --tipo-valor-lg: 600 30px/34px var(--fonte-display);
+  --tipo-valor-md: 600 20px/26px var(--fonte-display);
+  --tipo-titulo-pagina: 600 28px/36px var(--fonte-texto);
+  --tipo-titulo-secao: 600 20px/28px var(--fonte-texto);
+  --tipo-corpo-lg: 400 18px/28px var(--fonte-texto);
+  --tipo-corpo-md: 400 16px/24px var(--fonte-texto);
+  --tipo-rotulo: 500 14px/20px var(--fonte-texto);
+  --tipo-rotulo-forte: 600 14px/20px var(--fonte-texto);
+  --tipo-legenda: 400 13px/18px var(--fonte-texto);
+  --tipo-mono-md: 500 14px/20px var(--fonte-mono);
+  --tipo-mono-sm: 400 13px/18px var(--fonte-mono);
+}
+
+/* Tema claro (padrão) */
+:root,
+[data-theme="claro"] {
+  color-scheme: light;
+  --cor-fundo-canvas: var(--ardosia-50);
+  --cor-fundo-superficie: var(--ardosia-0);
+  --cor-fundo-rebaixado: var(--ardosia-100);
+  --cor-texto-principal: var(--ardosia-950);
+  --cor-texto-secundario: var(--ardosia-600);
+  --cor-texto-sutil: var(--ardosia-500);
+  --cor-borda-padrao: var(--ardosia-200);
+  --cor-borda-forte: var(--ardosia-400);
+  --cor-acento-preenchimento: var(--laranja-500);
+  --cor-acento-sobre: var(--ardosia-950);
+  --cor-acento-texto: var(--laranja-700);
+  --cor-foco-anel: var(--azul-600);
+  --cor-status-ofertada-texto: var(--azul-700);
+  --cor-status-ofertada-fundo: var(--azul-50);
+  --cor-status-aceita-texto: var(--violeta-700);
+  --cor-status-aceita-fundo: var(--violeta-50);
+  --cor-status-processamento-texto: var(--petroleo-700);
+  --cor-status-processamento-fundo: var(--petroleo-50);
+  --cor-status-liquidada-texto: var(--verde-700);
+  --cor-status-liquidada-fundo: var(--verde-50);
+  --cor-status-cancelada-texto: var(--cinza-700);
+  --cor-status-cancelada-fundo: var(--cinza-50);
+  --cor-status-falha-texto: var(--vermelho-700);
+  --cor-status-falha-fundo: var(--vermelho-50);
+  --cor-aviso-texto: var(--ambar-700);
+  --cor-aviso-fundo: var(--ambar-50);
+}
+
+/* Tema escuro */
+[data-theme="escuro"] {
+  color-scheme: dark;
+  --cor-fundo-canvas: var(--noite-900);
+  --cor-fundo-superficie: var(--noite-850);
+  --cor-fundo-rebaixado: var(--noite-800);
+  --cor-texto-principal: var(--noite-0);
+  --cor-texto-secundario: var(--noite-300);
+  --cor-texto-sutil: var(--noite-400);
+  --cor-borda-padrao: var(--noite-700);
+  --cor-borda-forte: var(--noite-500);
+  --cor-acento-preenchimento: var(--laranja-400);
+  --cor-acento-sobre: var(--ardosia-950);
+  --cor-acento-texto: var(--laranja-300);
+  --cor-foco-anel: var(--azul-400);
+  --cor-status-ofertada-texto: var(--azul-300);
+  --cor-status-ofertada-fundo: var(--azul-900);
+  --cor-status-aceita-texto: var(--violeta-300);
+  --cor-status-aceita-fundo: var(--violeta-900);
+  --cor-status-processamento-texto: var(--petroleo-300);
+  --cor-status-processamento-fundo: var(--petroleo-900);
+  --cor-status-liquidada-texto: var(--verde-300);
+  --cor-status-liquidada-fundo: var(--verde-900);
+  --cor-status-cancelada-texto: var(--noite-300);
+  --cor-status-cancelada-fundo: var(--cinza-900);
+  --cor-status-falha-texto: var(--vermelho-300);
+  --cor-status-falha-fundo: var(--vermelho-900);
+  --cor-aviso-texto: var(--ambar-300);
+  --cor-aviso-fundo: var(--ambar-900);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="claro"]) {
+    color-scheme: dark;
+    --cor-fundo-canvas: var(--noite-900);
+    --cor-fundo-superficie: var(--noite-850);
+    --cor-fundo-rebaixado: var(--noite-800);
+    --cor-texto-principal: var(--noite-0);
+    --cor-texto-secundario: var(--noite-300);
+    --cor-texto-sutil: var(--noite-400);
+    --cor-borda-padrao: var(--noite-700);
+    --cor-borda-forte: var(--noite-500);
+    --cor-acento-preenchimento: var(--laranja-400);
+    --cor-acento-sobre: var(--ardosia-950);
+    --cor-acento-texto: var(--laranja-300);
+    --cor-foco-anel: var(--azul-400);
+    --cor-status-ofertada-texto: var(--azul-300);
+    --cor-status-ofertada-fundo: var(--azul-900);
+    --cor-status-aceita-texto: var(--violeta-300);
+    --cor-status-aceita-fundo: var(--violeta-900);
+    --cor-status-processamento-texto: var(--petroleo-300);
+    --cor-status-processamento-fundo: var(--petroleo-900);
+    --cor-status-liquidada-texto: var(--verde-300);
+    --cor-status-liquidada-fundo: var(--verde-900);
+    --cor-status-cancelada-texto: var(--noite-300);
+    --cor-status-cancelada-fundo: var(--cinza-900);
+    --cor-status-falha-texto: var(--vermelho-300);
+    --cor-status-falha-fundo: var(--vermelho-900);
+    --cor-aviso-texto: var(--ambar-300);
+    --cor-aviso-fundo: var(--ambar-900);
+  }
+}
