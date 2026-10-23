@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-inter-orange: #FF7A00;
+  --color-inter-orange-hover: #E66E00;
+  --color-inter-orange-active: #CC6200;
+}
+
+@layer base {
+  body {
+    background-color: #F4F5F7;
+    color: #111827;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .compare-checkbox {
+    appearance: none;
+    display: inline-grid;
+    width: 14px;
+    height: 14px;
+    flex: none;
+    place-content: center;
+    border: 1px solid #9ca3af;
+    border-radius: 3px;
+    background: white;
+    cursor: pointer;
+  }
+
+  .compare-checkbox:checked {
+    border-color: var(--color-inter-orange);
+    background: var(--color-inter-orange);
+  }
+
+  .compare-checkbox:checked::after {
+    content: "";
+    width: 4px;
+    height: 7px;
+    margin-top: -2px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .compare-checkbox:focus-visible {
+    outline: 2px solid var(--color-inter-orange);
+    outline-offset: 2px;
+  }
+}

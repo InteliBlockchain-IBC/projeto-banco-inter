@@ -1,0 +1,93 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: backend
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: backend/.nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: inter_test
+          POSTGRES_PASSWORD: inter_test_only
+          POSTGRES_DB: banco_inter_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inter_test -d banco_inter_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URL: postgresql://inter_test:inter_test_only@127.0.0.1:5432/banco_inter_test
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: backend/.nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run test:db
+      - name: Backend integration (RPC HTTP, PostgreSQL and API process)
+        run: npm run test:integration
+      # A cobertura entra no relatório por arquivo carregado; sem `--silent` o npm
+      # interleavea o próprio banner e o `grep` da etapa seguinte não casa.
+      - name: Coverage gate
+        run: npm run coverage --silent
+      # Prova de estabilidade exigida por TESTING.md: três execuções, mesma tabela.
+      - name: Prove the coverage gate is stable across three runs
+        run: |
+          set -euo pipefail
+          for run in 1 2 3; do
+            npm run coverage --silent 2>/dev/null \
+              | grep -E "(app|config|errors|health|server)\.js +\|" \
+              > "${RUNNER_TEMP}/coverage-run-${run}.txt"
+            test -s "${RUNNER_TEMP}/coverage-run-${run}.txt"
+          done
+          diff "${RUNNER_TEMP}/coverage-run-1.txt" "${RUNNER_TEMP}/coverage-run-2.txt"
+          diff "${RUNNER_TEMP}/coverage-run-1.txt" "${RUNNER_TEMP}/coverage-run-3.txt"
+      - name: Produce the LCOV report
+        run: |
+          set -euo pipefail
+          npm run coverage:lcov --silent 2>/dev/null
+          test -s dist/lcov.info
+          echo "lcov.info: $(wc -c < dist/lcov.info) bytes"
+      - run: npm run openapi:validate
+      # Sem `--omit=dev`: o compilador e o linter executam nos dois jobs e
+      # ficavam fora do escopo da auditoria.
+      - run: npm audit --audit-level=moderate

@@ -1,0 +1,303 @@
+# Backend — Protocolo de crédito interfinanceiro
+
+API e camada de persistência PostgreSQL da prova de conceito de crédito interbancário overnight, desenvolvidos pelo **Inteli Blockchain** com o **Banco Inter** (Digital Assets & Emerging Technologies).
+
+> Projeto acadêmico e experimental. Opera exclusivamente em testnet (Sepolia), sem conexão com sistemas de produção e sem movimentação de ativos reais.
+
+---
+
+## O problema
+
+Bancos emprestam reservas entre si por um dia útil para fechar o caixa dentro do mínimo regulatório — a taxa média dessas operações é o CDI. Hoje a negociação leva minutos e a liquidação leva horas, por causa de checagem manual de limite e conciliação. Nessa janela existe **risco de contraparte**: a operação foi combinada mas ainda não foi consumada.
+
+A PoC propõe reduzir essa janela. No fluxo on-chain pretendido, o contrato inteligente valida o limite e executa a troca — token de crédito de um lado, ativo de liquidação do outro — em uma única transação atômica (DvP, *delivery versus payment*). Ou as duas pernas acontecem, ou nenhuma; a API deste repositório ainda não executa esse fluxo.
+
+## O papel deste repositório
+
+O projeto tem três repositórios: contratos, frontend e este. Aqui fica a camada Web2 — a que guarda o que não pode ir para uma rede pública e a que traduz o que acontece on-chain.
+
+Neste repositório estão a API, a projeção PostgreSQL dos eventos do contrato (migrations, seed de demonstração e consultas), as intenções de assinatura e os comandos de simulação DvP. O backend não assina nem transmite transações; o listener (`npm run chain:watch`) lê os eventos do contrato implantado na Sepolia e grava hashes, status, liquidações e limites no PostgreSQL.
+
+## Estado atual
+
+Versão `0.4.0`. **As rotas leem e gravam no PostgreSQL** quando `DATABASE_URL` está definida: ofertas, eventos, liquidações, limites, histórico, cursor e intenções são persistidos com timestamp, partes, taxa e hash, e sobrevivem a reinícios da API. Com o listener configurado, o deployment real da Sepolia passa a ser o ativo e a API serve os eventos indexados da chain. Sem ele, o conteúdo vem do seed e das simulações: hashes, blocos e endereços **sintéticos**, não prova de liquidação.
+
+| Ambiente | `DATABASE_URL` | Fonte de dados | `X-Data-Source` |
+| --- | --- | --- | --- |
+| `production` | obrigatória (sem ela o servidor não sobe) | PostgreSQL | `postgres` |
+| `development` / `test` | definida | PostgreSQL | `postgres` |
+| `development` / `test` | ausente | memória da instância (fixtures) | `mock` |
+
+Toda resposta **bem-sucedida** de `/api/*` traz `X-Data-Source` e `meta.source` com a origem; erros são `application/problem+json`. O payload é idêntico nas duas fontes — um teste de integração executa a mesma sequência de leituras, intenções e simulações em memória e no PostgreSQL e exige respostas iguais.
+
+Em `development`/`test`, `/api/mock/offers` cria ofertas e `/api/mock/offers/:id/{accept,reject,cancel}` registra a transição (oferta, eventos, liquidação, débito do limite, histórico e cursor) na fonte de dados ativa, numa única transação. Nesse ambiente também existem intenções de assinatura sob `/api/offers` e envio de hash sob `/api/transaction-requests`. `X-Wallet-Address` é dado fornecido pelo cliente, **não autenticação**; uma intenção não liquida nada por si. As simulações só gravam no contrato sintético do seed: depois que o listener registra o contrato real, `/api/mock/*` responde 409 `simulation-unavailable`. Em `production` todos os `POST` são 404 e não aparecem no OpenAPI servido. Sem `NODE_ENV`, tanto `buildApp()` quanto o servidor usam **production** por segurança.
+
+### Ambiente público de demonstração
+
+- API: <https://banco-inter-api.212-38-89-33.sslip.io/api/offers>
+- Swagger: <https://banco-inter-api.212-38-89-33.sslip.io/docs/>
+- Health e prontidão: [`/health`](https://banco-inter-api.212-38-89-33.sslip.io/health) e [`/ready`](https://banco-inter-api.212-38-89-33.sslip.io/ready)
+
+A demonstração permite consultas sem login e usa PostgreSQL privado, com 30 ofertas fictícias. Para testar no Swagger, abra **Listar ofertas**, clique em **Try it out** e depois em **Execute**. O listener Sepolia está desligado e as escritas retornam `404`; os fluxos de simulação ficam no ambiente local. Instruções de acesso, configuração e recuperação estão no [guia de deploy](docs/deploy.md).
+
+## Começando
+
+### Com Docker Compose — API, banco e seed em um comando
+
+Requisito: Docker com o plugin Docker Compose. Na raiz do repositório:
+
+```bash
+docker compose up --build -d
+```
+
+O Compose constrói a imagem com Node.js 24 e sobe, nesta ordem:
+
+1. `db` — PostgreSQL 17, com volume persistente;
+2. `setup` — aplica as migrations versionadas (`schema_migrations`) e grava a massa de demonstração; termina sozinho;
+3. `api` — sobe conectada ao banco pelo host `db`, em `NODE_ENV=development` (expõe as simulações e intenções).
+
+Não é necessário instalar Node.js ou PostgreSQL no computador.
+
+- API: <http://localhost:3000> — confira `X-Data-Source: postgres` nas respostas
+- Documentação interativa: <http://localhost:3000/docs>
+- Prontidão (testa o banco): <http://localhost:3000/ready>
+- PostgreSQL: `localhost:5432`, banco `banco_inter`, usuário `banco_inter`, senha local `banco_inter_local`.
+
+As portas publicadas ficam acessíveis apenas no próprio computador. Para alterar portas, credenciais ou o seed, copie `.env.example` para `.env` e ajuste `API_PORT`, `POSTGRES_*`, `API_NODE_ENV` e `SEED_DEMO`. O comando funciona também sem `.env`, usando esses padrões.
+
+**Seed de demonstração.** Quatro bancos fictícios — o Banco Alfa com duas carteiras, mostrando que uma instituição opera várias — e trinta ofertas. Os horários são relativos ao momento do seed, então logo depois dele há 10 ofertas abertas, 8 liquidadas, 4 canceladas, 4 rejeitadas e 4 expiradas. As cinco carteiras participam das ofertas; Delta tem ofertas criadas antes da revogação que continuam abertas, para demonstrar o bloqueio de novas ações. `SEED_DEMO=if-empty` (padrão) grava só no primeiro `up` e preserva o que você criar depois. Para recriar a massa com horários renovados — por exemplo, antes de uma demonstração:
+
+```bash
+docker compose run --rm -e SEED_DEMO=reset setup
+```
+
+Para consultar o estado, acompanhar logs, abrir o banco e encerrar o ambiente:
+
+```bash
+docker compose ps
+docker compose logs -f api setup
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker compose down
+```
+
+`docker compose down` preserva os dados do PostgreSQL; `docker compose down -v` apaga o volume e o próximo `up` recria esquema e seed.
+
+**Atualizando um ambiente que já existe** (depois de um `git pull` com migration nova, como a `002_institution_wallets.sql`):
+
+```bash
+docker compose up --build -d
+```
+
+O `--build` coloca as migrations novas na imagem e o `setup` aplica só as pendentes, sem apagar dados. O seed `if-empty` não regrava um banco que já tem dados. Somente em um ambiente local descartável, para substituir a massa sintética, use `docker compose run --rm -e SEED_DEMO=reset setup`; esse comando remove e recria os dados de demonstração.
+
+> **Já usava o Compose da versão 0.3.0?** Aquele volume foi criado pelo `docker-entrypoint-initdb.d`, sem `schema_migrations`, e o `setup` pode falhar com "relation already exists". Preserve o volume e faça backup/restore isolado antes de planejar a migração; não forje o ledger. `docker compose down -v` só é aceitável se todos os dados desse ambiente forem descartáveis e a exclusão for intencional. Não use esse procedimento na VPS.
+
+### Com Node.js instalado no computador
+
+Requisitos: **Node.js 24** (fixado em [`.nvmrc`](.nvmrc)) e npm.
+
+Com um PostgreSQL acessível (por exemplo, só o banco do compose: `docker compose up -d db`), copie [`.env.example`](.env.example) para `.env` — ele já aponta `DATABASE_URL` para esse banco — e rode:
+
+```bash
+npm ci
+npm run build
+node --env-file=.env dist/scripts/setup-db.js   # migrations + seed
+node --env-file=.env dist/src/server.js
+```
+
+Sem `DATABASE_URL`, `NODE_ENV=development npm run start` sobe com os dados em memória (`X-Data-Source: mock`), útil para trabalhar sem banco. O servidor sobe em `HOST` e `PORT` (padrão `127.0.0.1:3000`).
+
+### Scripts
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run build` | Compila o TypeScript para `dist/` |
+| `npm run start` | Sobe o servidor compilado |
+| `npm run db:setup` | Migrations + seed com `DATABASE_URL` (`SEED_DEMO=if-empty\|reset\|off`) |
+| `npm run db:migrate` | Só as migrations SQL com `DATABASE_URL` |
+| `npm run db:seed` | Só o seed; `npm run db:seed -- --reset` recria a massa |
+| `npm run test:db` | Migrations e integração PostgreSQL em schemas descartáveis (`TEST_DATABASE_URL`) |
+| `npm run test:integration` | Integração entre RPC HTTP local, PostgreSQL e processo real da API (`TEST_DATABASE_URL` obrigatória) |
+| `npm run docs:export` | Regera `docs/openapi.json` e a coleção Postman |
+| `npm test` | Roda a suíte de testes |
+| `npm run coverage` | Roda os testes com cobertura (exige `TEST_DATABASE_URL`) |
+| `npm run typecheck` | Verifica os tipos sem gerar arquivos |
+| `npm run lint` | Analisa o código com o Biome |
+| `npm run format` | Formata o código |
+| `npm run format:check` | Verifica a formatação sem alterar arquivos |
+| `npm run openapi:validate` | Valida o contrato OpenAPI gerado |
+| `npm run chain:sync` | Indexa a Sepolia até o head seguro e sai (cron/manual) |
+| `npm run chain:watch` | Worker contínuo do listener Sepolia |
+
+### Listener Sepolia
+
+Lê os eventos do `CreditInterbankOffer` por RPC público, **sem chave privada**, e grava a projeção no PostgreSQL. Configure no `.env` as variáveis do bloco "Listener Sepolia" de [`.env.example`](.env.example) (RPC, os três endereços e o bloco de deploy) e rode, com o banco já migrado:
+
+```bash
+node --env-file=.env dist/scripts/watch-chain.js
+```
+
+- **Lotes e confirmações.** Cada passe lê no máximo 10 blocos por `eth_getLogs` (limite do plano gratuito da Alchemy) e só indexa blocos com `CHAIN_SYNC_CONFIRMATIONS` (padrão 12). Enquanto há atraso, os lotes se emendam sem espera; `CHAIN_SYNC_INTERVAL_MS` só vale depois de alcançar o head.
+- **Atomicidade e idempotência.** Eventos, ofertas, liquidação, débito de limite, histórico e cursor de um lote entram numa única transação. A chave `(tx_hash, log_index)` impede débito duplo num reprocessamento.
+- **Falha fechada.** Uma inconsistência desfaz o lote e o cursor não avança. O worker continua vivo e registra uma linha JSON com `code`, `consecutiveFailures` e `retryInMs` (espera exponencial até 5 min):
+
+| `code` | Causa provável |
+| --- | --- |
+| `ORPHAN_OFFER_EVENT` | Evento de oferta sem `OfferCreated` indexado: `CREDIT_INTERBANK_OFFER_START_BLOCK` posterior à criação da oferta ou banco reiniciado com cursor incompleto |
+| `OFFER_CONFLICT` | Id on-chain já usado por dado sintético, ou liquidação divergente da oferta indexada |
+| `MISSING_LIMIT` / `INSUFFICIENT_LIMIT` | A projeção não tem o limite que a chain tinha no aceite (eventos de limite fora do intervalo indexado) |
+| `CHAIN_REORG` | O bloco do cursor, ou o bloco de um log, não é mais canônico. Reindexe a partir de um bloco anterior (reversão automática ainda não implementada) |
+| `CHAIN_MISMATCH` | O RPC configurado não é da Sepolia |
+| `INVALID_LOG` | Log com tópico da ABI que não decodifica |
+
+- **Segredos.** Nenhum log contém `SEPOLIA_RPC_URL`, `DATABASE_URL` ou partes delas: URLs de qualquer esquema perdem path e credenciais, e os valores dessas variáveis são mascarados onde aparecerem. Configuração inválida derruba o processo no boot citando só o nome da variável.
+- **Seed.** `SEED_DEMO=reset` preserva a projeção do listener e recria apenas o deployment sintético.
+
+## API
+
+Referência completa, com payloads, erros e exemplos: **[`docs/api.md`](docs/api.md)**. Para testar sem ler código, importe a coleção [`docs/collection/backend-banco-inter.postman_collection.json`](docs/collection/backend-banco-inter.postman_collection.json) no Postman, Bruno ou Insomnia.
+
+| Método | Caminho | Disponibilidade |
+| --- | --- | --- |
+| GET | `/api/deployment`, `/api/sync-status` | Deployment e cursor da projeção (endereços sintéticos do seed) |
+| GET | `/api/offers`, `/api/offers/:id`, `/api/offers/:id/events` | Ofertas e eventos persistidos |
+| GET | `/api/operations`, `/api/operations/:txHash` | Liquidações e comprovantes persistidos |
+| GET | `/api/credit-limits`, `/api/credit-limits/:wallet`, `/api/credit-limits/:wallet/history` | Limites e histórico persistidos |
+| GET | `/api/transaction-requests/:id` | Intenções persistidas |
+| POST | `/api/mock/offers`, `/api/mock/offers/:id/{accept,reject,cancel}` | **Somente development/test**; simulação sem autenticação ou transação |
+| POST | `/api/offers`, `/api/offers/:id/{accept,reject,cancel}`, `/api/transaction-requests/:id/submission` | **Somente development/test**; intenções, não execução |
+| GET | `/health`, `/ready`, `/openapi.json`, `/docs` | Liveness, prontidão (`SELECT 1` no banco; 503 se cair) e documentação |
+
+O OpenAPI exportado e a coleção Postman representam o ambiente `development`. O OpenAPI servido em `production` omite as operações POST. Sem deployment no banco (migrations aplicadas, seed não), `/api/*` responde 503 `deployment-not-configured` até `npm run db:setup`.
+
+Erros usam `application/problem+json`, com `type`, `title`, `status`, `detail` e `correlationId`; a lista de tipos está em [`docs/api.md`](docs/api.md#3-erros). Nenhuma resposta ou log expõe stack trace, SQL, `DATABASE_URL`, URL de RPC ou variável de ambiente.
+
+`/docs` é registrado como plugin de UI, não como rota com schema, então não aparece em `document.paths` do `/openapi.json`.
+
+## Arquitetura
+
+O diagrama separa o que esta base executa (setas sólidas) das integrações pretendidas (tracejadas). O frontend e o contrato ficam em repositórios separados.
+
+```mermaid
+flowchart LR
+    FE["Frontend (externo)"]
+    W["Carteira do operador"]
+    RPC["RPC Sepolia"]
+    DVP["Contrato DvP"]
+    BRL["BRLt · ERC-20"]
+    CDIP["CDIP · NFT ERC-721"]
+    API["Fastify · TypeScript"]
+    STORE["Repository · PgRepository / InMemoryRepository"]
+    MIG["setup: migrations + seed"]
+    DB[("PostgreSQL")]
+    LIS["Listener · chain:watch"]
+
+    FE -.->|"integração futura"| API
+    FE -.-> W
+    W -.-> RPC
+    RPC -.-> DVP
+    DVP -.-> BRL
+    DVP -.-> CDIP
+    API --> STORE
+    STORE -->|"consultas e transações"| DB
+    MIG -->|"antes da API"| DB
+    LIS -->|"eth_getLogs, sem chave"| RPC
+    LIS -->|"eventos, ofertas, limites, cursor"| DB
+```
+
+O contrato é a autoridade financeira. O banco é uma projeção reconstruível de eventos, não executor da troca; o listener a alimenta a partir da Sepolia (o seed e a simulação só alimentam o contrato sintético). Antes de expor mutações reais, faltam autenticação de carteira e autorização institucional, reversão automática de reorg (hoje ela é detectada e interrompe o listener) e integração de consumidor. Orçamento de latência é uma hipótese de projeto, **não** um SLO medido.
+
+Tecnologias, alternativas e riscos: [`docs/arquitetura.md`](docs/arquitetura.md).
+
+## Estrutura
+
+```
+src/
+  server.ts             entrypoint: lê a configuração e sobe o processo
+  app.ts                composição do Fastify; escolhe o repositório
+  config.ts             variáveis de ambiente validadas
+  http/                 camada HTTP
+    routes/             rotas (papel de controllers)
+    schemas.ts          schemas JSON/OpenAPI
+    errors.ts           Problem Details
+    reply.ts            envelope { data, meta } e X-Data-Source
+  domain/               regras puras, sem banco nem HTTP
+    types.ts            tipos e unidades do contrato DvP
+    rules.ts            validações, transições e argumentos de evento
+    views.ts            montagem do payload, comum aos repositórios
+  repositories/         acesso a dados
+    repository.ts       interface Repository
+    postgres/           PgRepository: SQL e transações no PostgreSQL
+    in-memory/          InMemoryRepository e simulação sobre as fixtures
+  database/             migrate.ts (runner) e seed.ts (massa de demonstração)
+  demo/fixtures.ts      massa de demonstração (memória e seed)
+scripts/                setup-db, migrate, seed e export-docs
+migrations/             esquema SQL versionado (001 esquema inicial, 002 carteiras por instituição)
+test/
+  unit/                 funções isoladas (configuração)
+  http/                 rotas via app.inject, sem banco
+  db/                   migrations e PgRepository (exigem TEST_DATABASE_URL)
+  process/              sobe o servidor real como processo
+docs/                   arquitetura, modelagem e referência de API
+```
+
+## Testes e CI
+
+`npm test` executa os testes HTTP com `app.inject()` sobre o store em memória e, quando `TEST_DATABASE_URL` está definida, os testes de PostgreSQL. Cada teste de banco cria e apaga o próprio schema; não aponte para um banco com dados que importam. `npm run test:db` e `npm run coverage` **exigem** a variável. Os testes de banco cobrem:
+
+- paridade: a mesma sequência de leituras, intenções (com conflitos, duplicidade e vencimento) e simulações produz respostas idênticas em memória e no PostgreSQL;
+- persistência: o que foi gravado continua lá depois de reiniciar a API;
+- concorrência: cinco aceites simultâneos liquidam a oferta uma única vez;
+- prontidão: `/ready` responde 503 com o banco fora do ar, sem vazar credenciais;
+- banco vazio: 503 até o seed, e seed idempotente;
+- migrations: aplicação real, idempotência, concorrência e rollback;
+- listener (`test/db/chain-sync.test.ts`): logs codificados com a ABI numa chain falsa e PostgreSQL real — oferta, liquidação, débito exato e histórico; reprocessamento sem débito duplo; lotes de 10 blocos e confirmações; evento órfão, limite ausente/insuficiente, conflito, log inválido, chain errada e reorg com rollback do lote; falha de RPC no meio do lote; passes concorrentes; queda do socket do PostgreSQL sem derrubar o processo; simulação recusada e seed preservando o listener.
+
+### Integração entre RPC, PostgreSQL e API
+
+`test/integration/` exercita o cliente viem HTTP sem injeção de `ChainReader`, o listener, PostgreSQL e a API iniciada pelo entrypoint real. As requisições à API usam `fetch` por TCP. A suíte verifica:
+
+- oferta consultável antes das confirmações da liquidação, seguida de comprovante, eventos e débito exato;
+- reinício do processo e replay de logs sem duplicar liquidação ou consumir o limite novamente;
+- cancelamento sem liquidação ou débito adicional, com rejeição de uma intenção posterior de aceite;
+- falha RPC no meio do lote com rollback e recuperação, recusa de outra rede e cancelamento de leitura HTTP no shutdown.
+
+Use um PostgreSQL descartável. Cada cenário aplica as migrations em um schema próprio e remove esse schema ao terminar; processos e portas locais também são encerrados. O comando falha se a URL de teste estiver ausente:
+
+```bash
+TEST_DATABASE_URL=postgresql://inter_test:inter_test_only@127.0.0.1:5432/banco_inter_test \
+  npm run test:integration
+```
+
+O provedor JSON-RPC local devolve blocos e logs fictícios codificados com a ABI. O transporte HTTP, a decodificação viem, o banco e o processo da API são reais. Esta suíte não executa os contratos nem transfere BRLt/CDIP, não consulta a Sepolia e não verifica carteira, frontend ou RNF02. Essas provas continuam necessárias para o aceite ponta a ponta compartilhado.
+
+O job `test` do CI executa `test:integration` explicitamente; a suíte também participa de `npm test` e da cobertura.
+
+
+Localmente, o banco do compose serve: `docker compose up -d db` e `TEST_DATABASE_URL=postgresql://banco_inter:banco_inter_local@127.0.0.1:5432/banco_inter npm test`. O CI provisiona PostgreSQL 16 efêmero.
+
+O workflow em [`.github/workflows/ci.yml`](.github/workflows/ci.yml) executa formatação, lint, typecheck, build, cobertura, OpenAPI, testes de banco e auditoria de dependências. A aprovação local não substitui o resultado do CI remoto.
+
+## Escopo dos requisitos
+
+| Requisito | Estado nesta base |
+| --- | --- |
+| RF04/05 | Consultas e histórico persistidos no PostgreSQL (dados sintéticos); sem indexação on-chain |
+| RF06 | Cancelamento **simulado** e persistido; o contrato real não é chamado |
+| RNF01 | Configuração restrita à Sepolia; demonstração pública usa seed fictício, sem listener ativo |
+| RNF02 | Listener implementado; integração ponta a ponta e medição de latência pendentes |
+| RNF03 | Trilha persistida (timestamp, partes, taxa, hash, eventos); ainda sintética, não observada on-chain |
+| RNF04 | Código e licença MIT disponíveis no repositório |
+
+RF01–RF03 dependem do trabalho de contratos e da validação entre equipes; não são concluídos por esta API.
+
+## Documentação
+- [`docs/arquitetura.md`](docs/arquitetura.md) — arquitetura atual e alvo, decisões e trade-offs.
+- [`docs/deploy.md`](docs/deploy.md) — acesso à demonstração, testes pelo Swagger, configuração, backup e recuperação.
+- [`docs/api.md`](docs/api.md) — contrato HTTP, fontes de dados e exemplos.
+- [`docs/openapi.json`](docs/openapi.json) e [`docs/collection/`](docs/collection/) — artefatos de `npm run docs:export` para `development`.
+- [`docs/modelagem-banco.md`](docs/modelagem-banco.md) — modelo ER e histórico das migrations; esquema em [`migrations/`](migrations/).
+
+## Licença
+
+MIT. Veja [`LICENSE`](LICENSE).
