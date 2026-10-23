@@ -1,12 +1,18 @@
-name: CI
+name: Backend CI
 
 on:
   pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
   push:
     branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml']
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: backend
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,8 +26,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
@@ -51,8 +58,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run test:db
       - name: Backend integration (RPC HTTP, PostgreSQL and API process)

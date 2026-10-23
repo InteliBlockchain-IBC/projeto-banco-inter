@@ -1,0 +1,34 @@
+name: Contracts CI
+
+on:
+  pull_request:
+    paths: ['contracts/**', '.gitmodules', '.github/workflows/contracts.yml']
+  push:
+    branches: [main]
+    paths: ['contracts/**', '.gitmodules', '.github/workflows/contracts.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: contracts
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          submodules: recursive
+      # v1.9.2; a versão do Foundry é a mesma usada para validar a v1.0.0 localmente.
+      - uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf
+        with:
+          version: v1.7.1
+      - run: forge build
+      - run: forge test -vv
